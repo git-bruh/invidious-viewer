@@ -17,11 +17,14 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-u",
                     "--url",
                     help="Specify link to play [Video/Playlist]")
+parser.add_argument("-c",
+                    "--channel",
+                    help="View videos from a specific channel")
 parser.add_argument("-n",
                     "--no-video",
                     help="Play audio only",
                     action="store_true",
-                    default=False)
+                    default=False),
 parser.add_argument("-p",
                     "--popular",
                     help="View popular videos (Main invidious page)",
@@ -65,7 +68,7 @@ def get_by_url(url):
 
 
 def get_data(content_type, api_url, search_term):
-    if content_type == "search":
+    if content_type == "search" or "channel":
         url = "https://invidio.us/api/v1/search?q={}".format(search_term)
     elif content_type == "popular":
         url = "https://invidio.us/api/v1/popular"
@@ -78,10 +81,16 @@ def get_data(content_type, api_url, search_term):
     video_ids = []
     if content_type == "playlist":
         content = content["videos"]
+    elif content_type == "channel":
+        channel_url = "https://invidio.us/api/v1/channels/{}".format(
+            content[0]["authorId"])
+        content = json.loads(urllib.request.urlopen(channel_url).read())
+        content = content["latestVideos"]
     for i in content:
         count += 1
         video_ids.append(i["videoId"])
-        results = "{}: {} [{}]".format(count, i["title"], length(i["lengthSeconds"]))
+        results = "{}: {} [{}]".format(count, i["title"],
+                                       length(i["lengthSeconds"]))
         print(results)
     queue_list = []
     if content_type == "search" or "playlist" or "popular":
@@ -106,8 +115,8 @@ def video_playback(video_ids, queue_length):
         # Try to get URL for 1080p, 720p, 360p, then livestream
         try:
             url = stream_url["adaptiveFormats"][15]["url"]
-            audio_url= stream_url["adaptiveFormats"][0]["url"]
-            player.audio_files=[audio_url]
+            audio_url = stream_url["adaptiveFormats"][0]["url"]
+            player.audio_files = [audio_url]
         except IndexError:
             try:
                 url = stream_url["formatStreams"][1]["url"]
@@ -130,6 +139,9 @@ if __name__ == "__main__":
     print(string)
     if args.popular:
         video_ids = get_data("popular", None, None)
+    elif args.channel is not None:
+        channel_name = "+".join(args.channel.split())
+        video_ids = get_data("channel", None, channel_name)
     elif args.url is not None:
         url = get_by_url(args.url)
         video_ids = get_data(url[0], url[1], None)
