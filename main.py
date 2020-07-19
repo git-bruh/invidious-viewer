@@ -85,7 +85,8 @@ def get_data(content_type, api_url, search_term):
         results = "{}: {} [{}]".format(count, i[data[1]], length(i[data[2]]))
         print(results)
     queue_list = []
-    if content_type == "search" or content_type == "playlist" or content_type == "popular":
+    # if content_type == "search" or content_type == "playlist" or content_type == "popular":
+    if content_type == "search" or "playlist" or "popular":
         queue = input("> ").split()
         for item in queue:
             item = int(item) - 1
