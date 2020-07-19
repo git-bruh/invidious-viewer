@@ -5,9 +5,12 @@ Simple python application to watch YouTube videos through the <a href="https://g
 # Usage
 1. Clone the repository
 2. Install the requirements
+
 ```pip install -r requirements.txt```
 3. Run the program
+
 ```python3 main.py```
+
 Additional usage options :
 ```
 usage: main.py [-h] [-u URL] [-n] [-p]
