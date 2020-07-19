@@ -65,7 +65,6 @@ def get_by_url(url):
 
 
 def get_data(content_type, api_url, search_term):
-    data = ["videoId", "title", "lengthSeconds"]
     if content_type == "search":
         url = "https://invidio.us/api/v1/search?q={}".format(search_term)
     elif content_type == "popular":
@@ -81,12 +80,14 @@ def get_data(content_type, api_url, search_term):
         content = content["videos"]
     for i in content:
         count += 1
-        video_ids.append(i[data[0]])
-        results = "{}: {} [{}]".format(count, i[data[1]], length(i[data[2]]))
+        video_ids.append(i["videoId"])
+        results = "{}: {} [{}]".format(count, i["title"], length(i["lengthSeconds"]))
         print(results)
     queue_list = []
     if content_type == "search" or "playlist" or "popular":
-        queue = input("> ").split()
+        queue = input("> ").lower().split()
+        if "all" in queue:
+            return video_ids, len(video_ids)
         for item in queue:
             item = int(item) - 1
             queue_list.append(item)
@@ -95,7 +96,6 @@ def get_data(content_type, api_url, search_term):
 
 
 def video_playback(video_ids, queue_length):
-    data = ["hlsUrl", "formatStreams", "title"]
     if queue_length == 0:
         queue_length = 1
     queue = 0
@@ -103,15 +103,24 @@ def video_playback(video_ids, queue_length):
         queue += 1
         url = "https://invidio.us/api/v1/videos/{}".format(video_id)
         stream_url = json.loads(urllib.request.urlopen(url).read())
-        # Try to get URL for 720p, 360p, then livestream
+        # Try to get URL for 1080p, 720p, 360p, then livestream
         try:
-            url = stream_url[data[1]][1]["url"]
+            url = stream_url["adaptiveFormats"][15]["url"]
+            audio_url= stream_url["adaptiveFormats"][0]["url"]
+            player.audio_files=[audio_url]
         except IndexError:
             try:
-                url = stream_url[data[1]][0]["url"]
+                url = stream_url["formatStreams"][1]["url"]
             except IndexError:
-                url = stream_url[data[0]]
-        title = stream_url[data[2]]
+                try:
+                    url = stream_url["hlsUrl"][0]["url"]
+                except IndexError:
+                    try:
+                        url = stream_url["hlsUrl"]
+                    except KeyError:
+                        print("No URL found")
+                        continue
+        title = stream_url["title"]
         print(f"[{queue} of {queue_length}] {title}")
         player.play(url)
         player.wait_for_playback()
