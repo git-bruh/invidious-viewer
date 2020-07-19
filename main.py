@@ -73,7 +73,7 @@ def get_data(content_type, api_url, search_term):
     elif content_type == "playlist":
         url = api_url
     elif content_type == "video":
-        return [api_url]
+        return [api_url], 0
     content = json.loads(urllib.request.urlopen(url).read())
     count = 0
     video_ids = []
