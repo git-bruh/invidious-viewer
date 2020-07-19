@@ -7,6 +7,7 @@ Simple python application to watch YouTube videos through the <a href="https://g
 2. Install the requirements
 
 ```pip install -r requirements.txt```
+
 3. Run the program
 
 ```python3 main.py```
