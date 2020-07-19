@@ -68,6 +68,8 @@ def get_data(content_type, api_url, search_term):
     data = ["videoId", "title", "lengthSeconds"]
     if content_type == "search":
         url = "https://invidio.us/api/v1/search?q={}".format(search_term)
+    elif content_type == "popular":
+        url = "https://invidio.us/api/v1/popular"
     elif content_type == "playlist":
         url = api_url
     elif content_type == "video":
@@ -83,7 +85,7 @@ def get_data(content_type, api_url, search_term):
         results = "{}: {} [{}]".format(count, i[data[1]], length(i[data[2]]))
         print(results)
     queue_list = []
-    if content_type == "search" or content_type == "playlist":
+    if content_type == "search" or content_type == "playlist" or content_type == "popular":
         queue = input("> ").split()
         for item in queue:
             item = int(item) - 1
@@ -117,7 +119,9 @@ def video_playback(video_ids, queue_length):
 
 if __name__ == "__main__":
     print(string)
-    if args.url is not None:
+    if args.popular:
+        video_ids = get_data("popular", None, None)
+    elif args.url is not None:
         url = get_by_url(args.url)
         video_ids = get_data(url[0], url[1], None)
     else:
