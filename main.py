@@ -68,7 +68,7 @@ def get_by_url(url):
 
 
 def get_data(content_type, api_url, search_term):
-    if content_type == "search" or "channel":
+    if content_type == "search" or content_type == "channel":
         url = "https://invidio.us/api/v1/search?q={}".format(search_term)
     elif content_type == "popular":
         url = "https://invidio.us/api/v1/popular"
