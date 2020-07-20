@@ -14,11 +14,13 @@ Simple python application to watch YouTube videos through the <a href="https://g
 
 Additional usage options :
 ```
-usage: main.py [-h] [-u URL] [-n] [-p]
+usage: main.py [-h] [-u URL] [-c CHANNEL] [-n] [-p]
 
 optional arguments:
-  -h, --help         show this help message and exit
-  -u URL, --url URL  Specify link to play [Video/Playlist]
-  -n, --no-video     Play audio only
-  -p, --popular      View popular videos (Main invidious page)
+  -h, --help            show this help message and exit
+  -u URL, --url URL     Specify link to play [Video/Playlist]
+  -c CHANNEL, --channel CHANNEL
+                        View videos from a specific channel
+  -n, --no-video        Play audio only
+  -p, --popular         View popular videos (Main invidious page)
 ```
