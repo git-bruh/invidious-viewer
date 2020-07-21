@@ -122,13 +122,10 @@ def video_playback(video_ids, queue_length):
                 url = stream_url["formatStreams"][1]["url"]
             except IndexError:
                 try:
-                    url = stream_url["hlsUrl"][0]["url"]
-                except IndexError:
-                    try:
-                        url = stream_url["hlsUrl"]
-                    except KeyError:
-                        print("No URL found")
-                        continue
+                    url = stream_url["hlsUrl"]
+                except KeyError:
+                    print("No URL found")
+                    continue
         title = stream_url["title"]
         print(f"[{queue} of {queue_length}] {title}")
         player.play(url)
