@@ -4,38 +4,6 @@ import datetime
 import json
 import mpv
 
-string = r'''
-  _____            _     _ _
- |_   _|          (_)   | (_)
-   | |  _ ____   ___  __| |_  ___  _   _ ___
-   | | | '_ \ \ / / |/ _` | |/ _ \| | | / __|
-  _| |_| | | \ V /| | (_| | | (_) | |_| \__ \
- |_____|_| |_|\_/ |_|\__,_|_|\___/ \__,_|___/
-'''
-
-parser = argparse.ArgumentParser()
-parser.add_argument("-u",
-                    "--url",
-                    help="Specify link to play [Video/Playlist]")
-parser.add_argument("-c",
-                    "--channel",
-                    help="View videos from a specific channel")
-parser.add_argument("-n",
-                    "--no-video",
-                    help="Play audio only",
-                    action="store_true",
-                    default=False),
-parser.add_argument("-p",
-                    "--popular",
-                    help="View popular videos (Main invidious page)",
-                    action="store_true")
-args = parser.parse_args()
-
-player = mpv.MPV(ytdl=True,
-                 input_default_bindings=True,
-                 input_vo_keyboard=True,
-                 osc=True)
-
 
 def length(arg):
     try:
@@ -43,6 +11,10 @@ def length(arg):
     except TypeError:
         return arg
 
+def download(url):
+    content = urllib.request.urlopen(url).read()
+    content = json.loads(content)
+    return content
 
 def player_config(no_video):
     if no_video:
@@ -76,7 +48,7 @@ def get_data(content_type, api_url, search_term):
         url = api_url
     elif content_type == "video":
         return [api_url], 0
-    content = json.loads(urllib.request.urlopen(url).read())
+    content = download(url)
     count = 0
     video_ids = []
     if content_type == "playlist":
@@ -84,7 +56,7 @@ def get_data(content_type, api_url, search_term):
     elif content_type == "channel":
         channel_url = "https://invidio.us/api/v1/channels/{}".format(
             content[0]["authorId"])
-        content = json.loads(urllib.request.urlopen(channel_url).read())
+        content = download(channel_url)
         content = content["latestVideos"]
     for i in content:
         count += 1
@@ -111,11 +83,11 @@ def video_playback(video_ids, queue_length):
     for video_id in video_ids:
         queue += 1
         url = "https://invidio.us/api/v1/videos/{}".format(video_id)
-        stream_url = json.loads(urllib.request.urlopen(url).read())
+        stream_url = download(url)
         # Try to get URL for 1080p, 720p, 360p, then livestream
         try:
-            url = stream_url["adaptiveFormats"][15]["url"]
-            audio_url = stream_url["adaptiveFormats"][0]["url"]
+            url = stream_url["adaptiveFormats"][-3]["url"]
+            audio_url = stream_url["adaptiveFormats"][3]["url"]
             player.audio_files = [audio_url]
         except IndexError:
             try:
@@ -133,6 +105,35 @@ def video_playback(video_ids, queue_length):
 
 
 if __name__ == "__main__":
+    string = r'''
+      _____            _     _ _
+     |_   _|          (_)   | (_)
+       | |  _ ____   ___  __| |_  ___  _   _ ___
+       | | | '_ \ \ / / |/ _` | |/ _ \| | | / __|
+      _| |_| | | \ V /| | (_| | | (_) | |_| \__ \
+     |_____|_| |_|\_/ |_|\__,_|_|\___/ \__,_|___/
+    '''
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-u",
+                        "--url",
+                        help="Specify link to play [Video/Playlist]")
+    parser.add_argument("-c",
+                        "--channel",
+                        help="View videos from a specific channel")
+    parser.add_argument("-n",
+                        "--no-video",
+                        help="Play audio only",
+                        action="store_true",
+                        default=False),
+    parser.add_argument("-p",
+                        "--popular",
+                        help="View popular videos (Main invidious page)",
+                        action="store_true")
+    args = parser.parse_args()
+    player = mpv.MPV(ytdl=True,
+                 input_default_bindings=True,
+                 input_vo_keyboard=True,
+                 osc=True)
     print(string)
     if args.popular:
         video_ids = get_data("popular", None, None)
