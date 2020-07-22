@@ -11,10 +11,12 @@ def length(arg):
     except TypeError:
         return arg
 
+
 def download(url):
     content = urllib.request.urlopen(url).read()
     content = json.loads(content)
     return content
+
 
 def player_config(no_video):
     if no_video:
@@ -131,9 +133,9 @@ if __name__ == "__main__":
                         action="store_true")
     args = parser.parse_args()
     player = mpv.MPV(ytdl=True,
-                 input_default_bindings=True,
-                 input_vo_keyboard=True,
-                 osc=True)
+                     input_default_bindings=True,
+                     input_vo_keyboard=True,
+                     osc=True)
     print(string)
     if args.popular:
         video_ids = get_data("popular", None, None)
