@@ -4,6 +4,11 @@ import datetime
 import json
 import mpv
 
+CRED = "\033[91m"
+CBLUE = "\33[34m"
+CGREEN = "\33[32m"
+CEND = "\033[0m"
+
 
 def length(arg):
     try:
@@ -60,11 +65,25 @@ def get_data(content_type, api_url, search_term):
             content[0]["authorId"])
         content = download(channel_url)
         content = content["latestVideos"]
+    title_list = []
+    max_len = 60
+    for i in content:
+        title = i["title"][:max_len]
+        title_list.append(title)
+    longest_title = len(max(title_list, key=len))
     for i in content:
         count += 1
+        if count <= 9:
+            count_ = " {}".format(count)
+        else:
+            count_ = count
         video_ids.append(i["videoId"])
-        results = "{}: {} [{}]".format(count, i["title"],
-                                       length(i["lengthSeconds"]))
+        title = i["title"][:max_len].ljust(longest_title)
+        video_length = length(i["lengthSeconds"])
+        channel = i["author"]
+        results = "{}: {}{} {}[{}] {}{} {}".format(count_, CGREEN, title,
+                                                   CBLUE, video_length, CRED,
+                                                   channel, CEND)
         print(results)
     queue_list = []
     if content_type == "search" or "playlist" or "popular":
@@ -116,21 +135,22 @@ if __name__ == "__main__":
      |_____|_| |_|\_/ |_|\__,_|_|\___/ \__,_|___/
     '''
     parser = argparse.ArgumentParser()
-    parser.add_argument("-u",
-                        "--url",
-                        help="Specify link to play [Video/Playlist]")
-    parser.add_argument("-c",
-                        "--channel",
-                        help="View videos from a specific channel")
     parser.add_argument("-n",
                         "--no-video",
                         help="Play audio only",
                         action="store_true",
                         default=False),
-    parser.add_argument("-p",
-                        "--popular",
-                        help="View popular videos (Main invidious page)",
-                        action="store_true")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-u",
+                       "--url",
+                       help="Specify link to play [Video/Playlist]")
+    group.add_argument("-c",
+                       "--channel",
+                       help="View videos from a specific channel")
+    group.add_argument("-p",
+                       "--popular",
+                       help="View popular videos (Main invidious page)",
+                       action="store_true")
     args = parser.parse_args()
     player = mpv.MPV(ytdl=True,
                      input_default_bindings=True,
