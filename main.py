@@ -105,6 +105,8 @@ def video_playback(video_ids, queue_length):
         queue += 1
         url = "https://invidio.us/api/v1/videos/{}".format(video_id)
         stream_url = download(url)
+        title = stream_url["title"]
+        print(f"[{queue} of {queue_length}] {title}")
         # Try to get URL for 1080p, 720p, 360p, then livestream
         try:
             url = stream_url["adaptiveFormats"][-3]["url"]
@@ -117,12 +119,11 @@ def video_playback(video_ids, queue_length):
                 try:
                     url = stream_url["hlsUrl"]
                 except KeyError:
-                    print("No URL found")
+                    print("No URL found\n")
                     continue
-        title = stream_url["title"]
-        print(f"[{queue} of {queue_length}] {title}")
         player.play(url)
         player.wait_for_playback()
+    player.terminate()
 
 
 if __name__ == "__main__":
@@ -156,6 +157,7 @@ if __name__ == "__main__":
                      input_default_bindings=True,
                      input_vo_keyboard=True,
                      osc=True)
+    player.on_key_press("ENTER")(lambda: player.playlist_next(mode="force"))
     print(string)
     if args.popular:
         video_ids = get_data("popular", None, None)
