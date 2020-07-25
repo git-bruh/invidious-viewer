@@ -8,6 +8,7 @@ CRED = "\033[91m"
 CBLUE = "\33[34m"
 CGREEN = "\33[32m"
 CEND = "\033[0m"
+instance = None
 
 
 def length(arg):
@@ -38,7 +39,7 @@ def get_by_url(url):
     content_id = url.split("=")[1]
     video_id_len = 11
     if len(content_id) > video_id_len:
-        api_url = "https://invidio.us/api/v1/playlists/{}".format(content_id)
+        api_url = "{}/api/v1/playlists/{}".format(instance, content_id)
         content_type = "playlist"
     else:
         api_url = content_id
@@ -48,9 +49,11 @@ def get_by_url(url):
 
 def get_data(content_type, api_url, search_term):
     if content_type == "search" or content_type == "channel":
-        url = "https://invidio.us/api/v1/search?q={}".format(search_term)
+        url = "{}/api/v1/search?q={}".format(instance, search_term)
     elif content_type == "popular":
-        url = "https://invidio.us/api/v1/popular"
+        url = "{}/api/v1/popular".format(instance)
+    elif content_type == "trending":
+        url = "{}/api/v1/trending".format(instance)
     elif content_type == "playlist":
         url = api_url
     elif content_type == "video":
@@ -61,8 +64,8 @@ def get_data(content_type, api_url, search_term):
     if content_type == "playlist":
         content = content["videos"]
     elif content_type == "channel":
-        channel_url = "https://invidio.us/api/v1/channels/{}".format(
-            content[0]["authorId"])
+        channel_url = "{}/api/v1/channels/{}".format(instance,
+                                                     content[0]["authorId"])
         content = download(channel_url)
         content = content["latestVideos"]
     title_list = []
@@ -103,7 +106,7 @@ def video_playback(video_ids, queue_length):
     queue = 0
     for video_id in video_ids:
         queue += 1
-        url = "https://invidio.us/api/v1/videos/{}".format(video_id)
+        url = "{}/api/v1/videos/{}".format(instance, video_id)
         stream_url = download(url)
         title = stream_url["title"]
         print(f"[{queue} of {queue_length}] {title}")
@@ -136,6 +139,10 @@ if __name__ == "__main__":
      |_____|_| |_|\_/ |_|\__,_|_|\___/ \__,_|___/
     '''
     parser = argparse.ArgumentParser()
+    parser.add_argument("-i",
+                        "--instance",
+                        help="Specify a different invidious instance",
+                        default="https://invidio.us")
     parser.add_argument("-n",
                         "--no-video",
                         help="Play audio only",
@@ -150,17 +157,25 @@ if __name__ == "__main__":
                        help="View videos from a specific channel")
     group.add_argument("-p",
                        "--popular",
-                       help="View popular videos (Main invidious page)",
+                       help="View popular videos (Default invidious page)",
+                       action="store_true")
+    group.add_argument("-t",
+                       "--trending",
+                       help="View trending videos",
                        action="store_true")
     args = parser.parse_args()
+
     player = mpv.MPV(ytdl=True,
                      input_default_bindings=True,
                      input_vo_keyboard=True,
                      osc=True)
     player.on_key_press("ENTER")(lambda: player.playlist_next(mode="force"))
     print(string)
+    instance = args.instance
     if args.popular:
         video_ids = get_data("popular", None, None)
+    elif args.trending:
+        video_ids = get_data("trending", None, None)
     elif args.channel is not None:
         channel_name = "+".join(args.channel.split())
         video_ids = get_data("channel", None, channel_name)
