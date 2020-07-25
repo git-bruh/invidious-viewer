@@ -1,1 +1,1 @@
-python-mpv==0.4.8
+python-mpv==0.5.1
