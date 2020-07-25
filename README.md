@@ -1,5 +1,5 @@
 # invidious-viewer
-Simple python application to watch YouTube videos through the <a href="https://github.com/iv-org/invidious">invidious</a> API.
+Simple python application to watch YouTube videos through the <a href="https://github.com/iv-org/invidious">Invidious</a> API.
 
 # Usage
 Clone the repository
