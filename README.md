@@ -27,4 +27,4 @@ optional arguments:
 Example :
 `python3 main.py --channel "linus tech tips" --instance https://invidious.snopyta.org --results 5 --no-video`
 
-Returns the first 5 results from the LTT channel, disables video playback, and fetches all URLs from the <a href="https://invidious.snopyta.org/">snopyta invidious instance</a>.
+Returns the first 5 results from the LTT channel, disables video playback, and fetches all URLs from the <a href="https://invidious.snopyta.org/">Snopyta instance</a>.
