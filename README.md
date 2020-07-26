@@ -3,7 +3,9 @@
 `pip install invidious-viewer --user`
 
 Add ~/.local/bin to PATH by adding the following to your ~/.bashrc :
+
 `PATH=$HOME/.local/bin:$PATH`
+
 This will allow you to launch invidious-viewer by using the `invidious` command in the terminal. 
 
 # Usage
