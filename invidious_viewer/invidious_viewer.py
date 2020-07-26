@@ -190,7 +190,7 @@ def main():
         video_ids = get_data("channel", None, channel_name, results, instance)
     elif args.url is not None:
         url = get_by_url(url_, instance)
-        video_ids = get_data(url[0], url[1], None)
+        video_ids = get_data(url[0], url[1], None, results, instance)
     else:
         search_term = "+".join(input("> ").split())
         video_ids = get_data("search", None, search_term, results, instance)
