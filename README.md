@@ -1,10 +1,7 @@
 # invidious-viewer
+# Installation
+
 # Usage
-Clone the repository
-
-Install the requirements
-`pip install -r requirements.txt`
-
 Note :
 The MPV player is required, along with `libmpv.so` which should be provided by your distribution.
 
