@@ -1,0 +1,3 @@
+#!/usr/bin/env python3
+from invidious_viewer import invidious_viewer
+invidious_viewer.main()

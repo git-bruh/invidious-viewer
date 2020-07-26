@@ -23,7 +23,7 @@ def download(url):
     return content
 
 
-def player_config(no_video):
+def player_config(no_video, player):
     if no_video:
         player.vid = False
         player.terminal = True
@@ -34,11 +34,11 @@ def player_config(no_video):
         player.input_terminal = False
 
 
-def get_by_url(url):
+def get_by_url(url, instance):
     content_id = url.split("=")[1]
     video_id_len = 11
     if len(content_id) > video_id_len:
-        api_url = "{}/api/v1/playlists/{}".format(args.instance, content_id)
+        api_url = "{}/api/v1/playlists/{}".format(instance, content_id)
         content_type = "playlist"
     else:
         api_url = content_id
@@ -46,13 +46,13 @@ def get_by_url(url):
     return content_type, api_url
 
 
-def get_data(content_type, api_url, search_term):
+def get_data(content_type, api_url, search_term, results, instance):
     if content_type == "search" or content_type == "channel":
-        url = "{}/api/v1/search?q={}".format(args.instance, search_term)
+        url = "{}/api/v1/search?q={}".format(instance, search_term)
     elif content_type == "popular":
-        url = "{}/api/v1/popular".format(args.instance)
+        url = "{}/api/v1/popular".format(instance)
     elif content_type == "trending":
-        url = "{}/api/v1/trending".format(args.instance)
+        url = "{}/api/v1/trending".format(instance)
     elif content_type == "playlist":
         url = api_url
     elif content_type == "video":
@@ -60,13 +60,13 @@ def get_data(content_type, api_url, search_term):
     content = download(url)
     count = 0
     max_len = 60
-    max_results = args.results
+    max_results = results
     video_ids = []
     title_list = []
     if content_type == "playlist":
         content = content["videos"]
     elif content_type == "channel":
-        channel_url = "{}/api/v1/channels/{}".format(args.instance,
+        channel_url = "{}/api/v1/channels/{}".format(instance,
                                                      content[0]["authorId"])
         content = download(channel_url)
         content = content["latestVideos"]
@@ -102,13 +102,13 @@ def get_data(content_type, api_url, search_term):
     return video_ids, len(queue_list)
 
 
-def video_playback(video_ids, queue_length):
+def video_playback(video_ids, queue_length, instance, player):
     if queue_length == 0:
         queue_length = 1
     queue = 0
     for video_id in video_ids:
         queue += 1
-        url = "{}/api/v1/videos/{}".format(args.instance, video_id)
+        url = "{}/api/v1/videos/{}".format(instance, video_id)
         stream_url = download(url)
         title = stream_url["title"]
         print(f"[{queue} of {queue_length}] {title}")
@@ -131,7 +131,7 @@ def video_playback(video_ids, queue_length):
     player.terminate()
 
 
-if __name__ == "__main__":
+def main():
     string = r'''
       _____            _     _ _
      |_   _|          (_)   | (_)
@@ -177,19 +177,26 @@ if __name__ == "__main__":
                      osc=True)
     player.on_key_press("ENTER")(lambda: player.playlist_next(mode="force"))
     print(string)
+    url_ = args.url
+    results = args.results
+    no_video = args.no_video
     instance = args.instance
     if args.popular:
-        video_ids = get_data("popular", None, None)
+        video_ids = get_data("popular", None, None, results, instance)
     elif args.trending:
-        video_ids = get_data("trending", None, None)
+        video_ids = get_data("trending", None, None, results, instance)
     elif args.channel is not None:
         channel_name = "+".join(args.channel.split())
-        video_ids = get_data("channel", None, channel_name)
+        video_ids = get_data("channel", None, channel_name, results, instance)
     elif args.url is not None:
-        url = get_by_url(args.url)
+        url = get_by_url(url_, instance)
         video_ids = get_data(url[0], url[1], None)
     else:
         search_term = "+".join(input("> ").split())
-        video_ids = get_data("search", None, search_term)
-    player_config(args.no_video)
-    video_playback(video_ids[0], video_ids[1])
+        video_ids = get_data("search", None, search_term, results, instance)
+    player_config(no_video, player)
+    video_playback(video_ids[0], video_ids[1], instance, player)
+
+
+if __name__ == "__main__":
+    main()
