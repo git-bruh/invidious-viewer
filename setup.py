@@ -8,7 +8,7 @@ setuptools.setup(
     version="0.0.1",
     packages=["invidious_viewer"],
     scripts=["invidious"],
-    description="Python application to watch YouTube videos through the"
+    description="Python application to watch YouTube videos through the "
     "Invidious API, in the terminal!",
     long_description=long_description,
     long_description_content_type="text/markdown",
