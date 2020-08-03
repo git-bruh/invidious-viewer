@@ -3,6 +3,7 @@ import argparse
 import datetime
 import json
 import mpv
+import os
 
 CRED = "\033[91m"
 CBLUE = "\33[34m"
@@ -23,12 +24,12 @@ def download(url):
     return content
 
 
-def player_config(no_video, player):
-    if no_video:
+def player_config(video, player):
+    if not video:
         player.vid = False
         player.terminal = True
         player.input_terminal = True
-    elif not no_video:
+    else:
         player.vid = "auto"
         player.terminal = False
         player.input_terminal = False
@@ -49,16 +50,33 @@ def get_by_url(url, instance):
     return content_type, api_url
 
 
+def config(instance):
+    config_path = os.path.expanduser("~/.config/invidious/")
+    config_file = config_path + "config.json"
+    config_dict = {"instance": instance, "play_video": True}
+    if not os.path.exists(config_file):
+        print("Created config file at {}".format(config_file))
+        try:
+            os.mkdir(config_path)
+        except FileExistsError:
+            pass
+        with open(config_file, "w") as f:
+            json.dump(config_dict, f)
+    with open(config_file, "r") as f:
+        content = json.loads(f.read())
+        return content
+
+
 def get_data(content_type, results, instance, search_term=None, api_url=None):
-    if content_type == "search" or content_type == "channel":
+    if "search" in content_type or "channel" in content_type:
         url = "{}/api/v1/search?q={}".format(instance, search_term)
-    elif content_type == "popular":
+    elif "popular" in content_type:
         url = "{}/api/v1/popular".format(instance)
-    elif content_type == "trending":
+    elif "trending" in content_type:
         url = "{}/api/v1/trending".format(instance)
-    elif content_type == "playlist":
+    elif "playlist" in content_type:
         url = api_url
-    elif content_type == "video":
+    elif "video" in content_type:
         return [api_url], 0
     content = download(url)
     count = 0
@@ -147,24 +165,24 @@ def main():
       _| |_| | | \ V /| | (_| | | (_) | |_| \__ \
      |_____|_| |_|\_/ |_|\__,_|_|\___/ \__,_|___/
     '''
+    print(string)
     parser = argparse.ArgumentParser()
-    parser.add_argument("-i",
-                        "--instance",
-                        help="Specify a different invidious instance",
-                        default="https://invidio.us")
+    parser.add_argument(
+        "-i",
+        "--instance",
+        help="Specify a different invidious instance (Overrides config file)")
     parser.add_argument("-r",
                         "--results",
                         type=int,
                         help="Return specific number of results")
-    parser.add_argument("-n",
-                        "--no-video",
-                        help="Play audio only",
-                        action="store_true",
-                        default=False),
+    parser.add_argument("-v",
+                        "--video",
+                        help="Play video (Overrides config file)",
+                        action="store_true")
     group = parser.add_mutually_exclusive_group()
     group.add_argument("-u",
                        "--url",
-                       help="Specify link to play [Video/Playlist]")
+                       help="Specify link or ID to play [Video/Playlist]")
     group.add_argument("-c",
                        "--channel",
                        help="View videos from a specific channel")
@@ -177,7 +195,6 @@ def main():
                        help="View trending videos",
                        action="store_true")
     args = parser.parse_args()
-
     player = mpv.MPV(ytdl=True,
                      input_default_bindings=True,
                      input_vo_keyboard=True,
@@ -185,9 +202,16 @@ def main():
     player.on_key_press("ENTER")(lambda: player.playlist_next(mode="force"))
     url_ = args.url
     results = args.results
-    no_video = args.no_video
-    instance = args.instance
-    print(string)
+    default_instance = "https://invidio.us"
+    invidious_config = config(default_instance)
+    if args.instance is not None:
+        instance = args.instance
+    else:
+        instance = invidious_config.get("instance")
+    if args.video:
+        video = args.video
+    else:
+        video = invidious_config.get("play_video")
     if args.popular:
         video_ids = get_data("popular", results, instance)
     elif args.trending:
@@ -201,7 +225,7 @@ def main():
     else:
         search_term = "+".join(input("> ").split())
         video_ids = get_data("search", results, instance, search_term)
-    player_config(no_video, player)
+    player_config(video, player)
     video_playback(video_ids[0], video_ids[1], instance, player)
 
 
