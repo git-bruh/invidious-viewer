@@ -202,7 +202,7 @@ def main():
     player.on_key_press("ENTER")(lambda: player.playlist_next(mode="force"))
     url_ = args.url
     results = args.results
-    default_instance = "https://invidio.us"
+    default_instance = "https://invidious.snopyta.org"
     invidious_config = config(default_instance)
     if args.instance is not None:
         instance = args.instance
