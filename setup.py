@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="invidious-viewer",
-    version="0.0.4",
+    version="0.0.5",
     packages=["invidious_viewer"],
     scripts=["invidious"],
     description="Python application to watch YouTube videos through the "
@@ -24,5 +24,5 @@ setuptools.setup(
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)"
     ],
     url="https://github.com/lwritebadcode/invidious-viewer",
-    install_requires=["python-mpv >= 0.5.2"],
+    install_requires=["python-mpv >= 0.5.2", "feedparser >= 5.2.1"],
     python_requires=">=3.6")
