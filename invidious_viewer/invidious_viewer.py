@@ -1,4 +1,5 @@
 import urllib.request
+import feedparser
 import argparse
 import datetime
 import json
@@ -78,7 +79,7 @@ def get_data(content_type, results, instance, search_term=None, api_url=None):
         url = api_url
     elif "video" in content_type:
         return [api_url], 0
-    content = download(url)
+    content_ = download(url)
     count = 0
     max_len = 60
     max_results = results
@@ -90,32 +91,75 @@ def get_data(content_type, results, instance, search_term=None, api_url=None):
     video_ids = []
     title_list = []
     if content_type == "playlist":
-        content = content["videos"]
+        content = content_["videos"]
     elif content_type == "channel":
-        channel_url = "{}/api/v1/channels/{}".format(instance,
-                                                     content[0]["authorId"])
+        rss = False
+        channel_url = "{}/api/v1/channels/videos/{}".format(instance,
+                                                     content_[0]["authorId"])
         content = download(channel_url)
-        content = content["latestVideos"]
-    for i in content:
-        title = i["title"][:max_len]
-        title_list.append(title)
+        # Fetch videos from RSS fead if invidious fails
+        if len(content) == 0:
+            rss = True
+            content = {}
+            id_key = "videoId"
+            title_key = "title"
+            author_key = "author"
+            length_key = "lengthSeconds"
+            content.setdefault(id_key, [])
+            content.setdefault(title_key, [])
+            content.setdefault(author_key, [])
+            content.setdefault(length_key, [])
+            rss_feed = feedparser.parse("{}/feed/channel/{}".format(instance,
+                                                  content_[0]["authorId"]))
+            rss_count = -1
+            # RSS returns only 15 results
+            while rss_count < 14:
+                rss_count += 1
+                entries = rss_feed.entries[rss_count]
+                content[id_key].append(entries.yt_videoid)
+                content[title_key].append(entries.title)
+                content[author_key].append(entries.author)
+                content[length_key].append(0)
+    if rss:
+        for i in content["title"]:
+            title = i
+            title_list.append(title)
+    else:
+        for i in content:
+            title = i["title"][:max_len]
+            title_list.append(title)
     longest_title = len(max(title_list, key=len))
-    for i in content:
-        count += 1
-        if count <= 9:
-            count_ = " {}".format(count)
-        else:
-            count_ = count
-        if max_results is not None and count < max_results:
-            continue
-        video_ids.append(i["videoId"])
-        title = i["title"][:max_len].ljust(longest_title)
-        video_length = length(i["lengthSeconds"])
-        channel = i["author"]
-        results = "{}: {}{} {}[{}] {}{} {}".format(count_, CGREEN, title,
-                                                   CBLUE, video_length, CRED,
-                                                   channel, CEND)
-        print(results)
+    def content_loop(loop_variable, count=count):
+        for i in loop_variable:
+            count += 1
+            if count <= 9:
+                count_ = " {}".format(count)
+            else:
+                count_ = count
+            if max_results is not None and count < max_results:
+                continue
+            if rss:
+                title = i[:max_len].ljust(longest_title)
+                for item in content["author"]:
+                    channel = item
+                for item in content["videoId"]:
+                    if item not in video_ids:
+                        video_ids.append(item)
+                for item in content["lengthSeconds"]:
+                    video_length = length(item)
+            else:
+                title = i["title"][:max_len].ljust(longest_title)
+                channel = i["author"]
+                video_ids.append(i["videoId"])
+                video_length = length(i["lengthSeconds"])
+            results = "{}: {}{} {}[{}] {}{} {}".format(count_, CGREEN, title,
+                                                       CBLUE, video_length, CRED,
+                                                       channel, CEND)
+            print(results)
+    if rss:
+        content_loop(content["title"])
+    else:
+        content_loop(content)
     queue_list = []
     if content_type == "search" or "playlist" or "popular":
         queue = input("> ").split()
