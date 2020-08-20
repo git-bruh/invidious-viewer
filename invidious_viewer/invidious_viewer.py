@@ -79,7 +79,8 @@ def get_data(content_type, results, instance, search_term=None, api_url=None):
         url = api_url
     elif "video" in content_type:
         return [api_url], 0
-    content_ = download(url)
+    rss = False
+    content = download(url)
     count = 0
     max_len = 60
     max_results = results
@@ -91,9 +92,9 @@ def get_data(content_type, results, instance, search_term=None, api_url=None):
     video_ids = []
     title_list = []
     if content_type == "playlist":
-        content = content_["videos"]
+        content = content["videos"]
     elif content_type == "channel":
-        rss = False
+        content_ = content
         channel_url = "{}/api/v1/channels/videos/{}".format(instance,
                                                      content_[0]["authorId"])
         content = download(channel_url)
