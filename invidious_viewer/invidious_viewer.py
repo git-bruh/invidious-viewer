@@ -25,15 +25,16 @@ def download(url):
     return content
 
 
-def player_config(video, player):
+def player_config(player, video, captions):
+    player.vid = "auto"
+    player.terminal = False
+    player.input_terminal = False
+    if not captions:
+        player.sid = False
     if not video:
         player.vid = False
         player.terminal = True
         player.input_terminal = True
-    else:
-        player.vid = "auto"
-        player.terminal = False
-        player.input_terminal = False
 
 
 def get_by_url(url, instance):
@@ -54,7 +55,7 @@ def get_by_url(url, instance):
 def config(instance):
     config_path = os.path.expanduser("~/.config/invidious/")
     config_file = config_path + "config.json"
-    config_dict = {"instance": instance, "play_video": True}
+    config_dict = {"instance": instance, "play_video": True, "captions": False}
     if not os.path.exists(config_file):
         print("Created config file at {}".format(config_file))
         try:
@@ -62,7 +63,7 @@ def config(instance):
         except FileExistsError:
             pass
         with open(config_file, "w") as f:
-            json.dump(config_dict, f)
+            json.dump(config_dict, f, indent=4)
     with open(config_file, "r") as f:
         content = json.loads(f.read())
         return content
@@ -186,8 +187,11 @@ def video_playback(video_ids, queue_length, instance, player):
         # Try to get URL for 1080p, 720p, 360p, then livestream
         try:
             url = stream_url["adaptiveFormats"][-3]["url"]
+            cc_url = stream_url["captions"][0]["url"]
+            cc_url = "{}{}".format(instance, cc_url)
             audio_url = stream_url["adaptiveFormats"][3]["url"]
             player.audio_files = [audio_url]
+            player.sub_files = [cc_url]
         except IndexError:
             try:
                 url = stream_url["formatStreams"][1]["url"]
@@ -249,6 +253,7 @@ def main():
     results = args.results
     default_instance = "https://invidious.snopyta.org"
     invidious_config = config(default_instance)
+    captions = invidious_config.get("captions")
     if args.instance is not None:
         instance = args.instance
     else:
@@ -270,7 +275,7 @@ def main():
     else:
         search_term = "+".join(input("> ").split())
         video_ids = get_data("search", results, instance, search_term)
-    player_config(video, player)
+    player_config(player, video, captions)
     video_playback(video_ids[0], video_ids[1], instance, player)
 
 
