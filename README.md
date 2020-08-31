@@ -10,7 +10,7 @@ This will allow invidious-viewer to be launched by using the `invidious` command
 
 # Usage
 Note :
-The MPV player is required, along with `libmpv.so` which should be provided by your distribution's package manager.
+The MPV player is required, along with `libmpv.so` which should be provided by your distribution's package manager. Compiling MPV with LuaJIT support may also be required on a source-based distribution.
 
 Default behaviour :
 Returns the first page of results for the entered search term.
