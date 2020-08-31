@@ -6,6 +6,7 @@ import json
 import mpv
 import os
 
+# Set ANSI escape codes for colors
 CRED = "\033[91m"
 CBLUE = "\33[34m"
 CGREEN = "\33[32m"
@@ -83,13 +84,9 @@ def get_data(content_type, results, instance, search_term=None, api_url=None):
     rss = False
     content = download(url)
     count = 0
+    # Set maximum length for video titles
     max_len = 60
     max_results = results
-    if results is not None:
-        try:
-            max_results = int(results)
-        except ValueError:
-            max_results = None
     video_ids = []
     title_list = []
     if content_type == "playlist":
@@ -138,7 +135,7 @@ def get_data(content_type, results, instance, search_term=None, api_url=None):
                 count_ = " {}".format(count)
             else:
                 count_ = count
-            if max_results is not None and count < max_results:
+            if max_results is not None and count > max_results:
                 continue
             if rss:
                 title = i[:max_len].ljust(longest_title)
@@ -184,19 +181,22 @@ def video_playback(video_ids, queue_length, instance, player):
         stream_url = download(url)
         title = stream_url["title"]
         print("[{} of {}] {}".format(queue, queue_length, title))
-        # Try to get URL for 1080p, 720p, 360p, then livestream
         try:
+            # Get URL for 1080p video
             url = stream_url["adaptiveFormats"][-3]["url"]
             cc_url = stream_url["captions"][0]["url"]
             cc_url = "{}{}".format(instance, cc_url)
+            player.sub_files = [cc_url]
+            # Set separate URL for audio file as 1080p URL ("adaptiveFormats") only has video content
             audio_url = stream_url["adaptiveFormats"][3]["url"]
             player.audio_files = [audio_url]
-            player.sub_files = [cc_url]
         except IndexError:
             try:
+                # Get URL for 720p video
                 url = stream_url["formatStreams"][1]["url"]
             except IndexError:
                 try:
+                # Get URL for livestream
                     url = stream_url["hlsUrl"]
                 except KeyError:
                     print("No URL found")
@@ -206,7 +206,7 @@ def video_playback(video_ids, queue_length, instance, player):
 
 
 def main():
-    string = r'''
+    invidious_ascii = r'''
       _____            _     _ _
      |_   _|          (_)   | (_)
        | |  _ ____   ___  __| |_  ___  _   _ ___
@@ -214,12 +214,12 @@ def main():
       _| |_| | | \ V /| | (_| | | (_) | |_| \__ \
      |_____|_| |_|\_/ |_|\__,_|_|\___/ \__,_|___/
     '''
-    print(string)
+    print(invidious_ascii)
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-i",
-        "--instance",
-        help="Specify a different invidious instance (Overrides config file)")
+                        "-i",
+                        "--instance",
+                        help="Specify a different invidious instance (Overrides config file)")
     parser.add_argument("-r",
                         "--results",
                         type=int,
@@ -248,6 +248,7 @@ def main():
                      input_default_bindings=True,
                      input_vo_keyboard=True,
                      osc=True)
+    # Set "ENTER" as the keybind to skip to the next item in the queue
     player.on_key_press("ENTER")(lambda: player.playlist_next(mode="force"))
     url_ = args.url
     results = args.results
