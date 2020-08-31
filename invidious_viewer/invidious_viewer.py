@@ -39,12 +39,18 @@ def player_config(player, video, captions):
 
 
 def get_by_url(url, instance):
+    # Terrible implementation to get ID from video/playlist URL
+    # Example video URL https://invidio.us/watch?v=dQw4w9WgXcQ
     try:
+        # Split after "=", returns the video ID dQw4w9WgXcQ
         content_id = url.split("=")[1]
     except IndexError:
+        # Assume that the exact video ID has been provided, dQw4w9WgXcQ
+        # Breaks if URL is in a format like https://youtu.be/dQw4w9WgXcQ
         content_id = url
-    video_id_len = 11
-    if len(content_id) > video_id_len:
+    # Video IDs have a length of 11 characters
+    # Assume the ID to be of a playlist if length exceeds 11 characters
+    if len(content_id) > 11:
         api_url = "{}/api/v1/playlists/{}".format(instance, content_id)
         content_type = "playlist"
     else:
@@ -82,13 +88,10 @@ def get_data(content_type, results, instance, search_term=None, api_url=None):
     elif "video" in content_type:
         return [api_url], 0
     rss = False
-    content = download(url)
-    count = 0
-    # Set maximum length for video titles
-    max_len = 60
-    max_results = results
     video_ids = []
     title_list = []
+    max_results = results
+    content = download(url)
     if content_type == "playlist":
         content = content["videos"]
     elif content_type == "channel":
@@ -99,6 +102,7 @@ def get_data(content_type, results, instance, search_term=None, api_url=None):
         # Fetch videos from RSS fead if invidious fails
         if len(content) == 0:
             rss = True
+            # Make an empty dict to store data from RSS feed
             content = {}
             id_key = "videoId"
             title_key = "title"
@@ -109,7 +113,7 @@ def get_data(content_type, results, instance, search_term=None, api_url=None):
             content.setdefault(author_key, [])
             content.setdefault(length_key, [])
             rss_feed = feedparser.parse("{}/feed/channel/{}".format(instance,
-                                                  content_[0]["authorId"]))
+                                        content_[0]["authorId"]))
             rss_count = -1
             # RSS returns only 15 results
             while rss_count < 14:
@@ -119,15 +123,23 @@ def get_data(content_type, results, instance, search_term=None, api_url=None):
                 content[title_key].append(entries.title)
                 content[author_key].append(entries.author)
                 content[length_key].append(0)
+    # Set maximum length for video titles, will add an option in the config file soon
+    max_len = 60
+    # The JSON data returned by the API is not really a python dictionary, as it has duplicate keys
+    # This if-else statement changes titles to have a maximum length of max_len and appends them to title_list
+    # This is used later in content_loop() for proper padding of other values (content length, channel name)
     if rss:
-        for i in content["title"]:
-            title = i
+        for title in content["title"]:
+            title = title[:max_len]
             title_list.append(title)
     else:
-        for i in content:
-            title = i["title"][:max_len]
+        for title in content:
+            title = title["title"][:max_len]
             title_list.append(title)
+    # Get longest title out of the title list, used in content_loop() for properly padding
+    # video length and channel name
     longest_title = len(max(title_list, key=len))
+    count = 0
     def content_loop(loop_variable, count=count):
         for i in loop_variable:
             count += 1
