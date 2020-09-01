@@ -123,11 +123,10 @@ def get_data(content_type, results, instance, search_term=None, api_url=None):
                 content[title_key].append(entries.title)
                 content[author_key].append(entries.author)
                 content[length_key].append(0)
-    # Set maximum length for video titles, will add an option in the config file soon
+    # Set maximum length for video titles
     max_len = 60
     # The JSON data returned by the API is not really a python dictionary, as it has duplicate keys
     # This if-else statement changes titles to have a maximum length of max_len and appends them to title_list
-    # This is used later in content_loop() for proper padding of other values (content length, channel name)
     if rss:
         for title in content["title"]:
             title = title[:max_len]
@@ -142,11 +141,17 @@ def get_data(content_type, results, instance, search_term=None, api_url=None):
     count = 0
     def content_loop(loop_variable, count=count):
         for i in loop_variable:
+            # Add 1 to the count to be displayed before each title
             count += 1
+            # Add a space before the count number if it's less than or equal to 9
+            # Helps to get uniform output, comparison without and with this if-else statement
+            # 9: "TITLE"     9: "TITLE"
+            # 10: "TITLE"   10: "TITLE"
             if count <= 9:
                 count_ = " {}".format(count)
             else:
                 count_ = count
+            # Stops the for loop if the maximum number of results have been printed out (Set by the --results argument)
             if max_results is not None and count > max_results:
                 continue
             if rss:
@@ -163,9 +168,9 @@ def get_data(content_type, results, instance, search_term=None, api_url=None):
                 channel = i["author"]
                 video_ids.append(i["videoId"])
                 video_length = length(i["lengthSeconds"])
-            results = "{}: {}{} {}[{}] {}{} {}".format(count_, CGREEN, title,
-                                                       CBLUE, video_length, CRED,
-                                                       channel, CEND)
+            results = "{}: {}{} {}\t[{}] {}{} {}".format(count_, CGREEN, title,
+                                                        CBLUE, video_length, CRED,
+                                                        channel, CEND)
             print(results)
     if rss:
         content_loop(content["title"])
@@ -174,8 +179,10 @@ def get_data(content_type, results, instance, search_term=None, api_url=None):
     queue_list = []
     if content_type == "search" or "playlist" or "popular":
         queue = input("> ").split()
+        # Add all results to queue if input has the string "all" in it
         if len(queue) == 1 and queue[0] == "all":
             return video_ids, len(video_ids)
+        # Append user choice to queue
         for item in queue:
             item = int(item) - 1
             queue_list.append(item)
