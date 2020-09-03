@@ -178,14 +178,19 @@ def get_data(content_type, results, instance, search_term=None, api_url=None):
         content_loop(content)
     queue_list = []
     if content_type == "search" or "playlist" or "popular":
-        queue = input("> ").split()
-        # Add all results to queue if input has the string "all" in it
-        if len(queue) == 1 and queue[0] == "all":
-            return video_ids, len(video_ids)
         # Append user choice to queue
-        for item in queue:
-            item = int(item) - 1
-            queue_list.append(item)
+        for tries in range(4):
+            try:
+                queue = input("> ").split()
+                # Add all results to queue if input has the string "all" in it
+                if "all" in queue:
+                    return video_ids, len(video_ids)
+                for item in queue:
+                    item = int(item) - 1
+                    queue_list.append(item)
+                break
+            except ValueError:
+                pass
         video_ids = [video_ids[i] for i in queue_list]
     return video_ids, len(queue_list)
 
