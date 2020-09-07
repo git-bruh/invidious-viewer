@@ -2,11 +2,11 @@
 # Installation
 `pip install --user invidious-viewer`
 
-For installing the git version
+For installing the git version:
 
 `pip install --user -U git+https://github.com/git-bruh/invidious-viewer.git`
 
-Add ~/.local/bin to PATH by adding the following to your ~/.bashrc :
+Add `~/.local/bin` to `PATH` by adding the following to your `~/.bashrc`:
 
 `PATH=$HOME/.local/bin:$PATH`
 
