@@ -43,7 +43,8 @@ def get_by_url(url, instance):
     # Replace instance with https://youtube.com/ for regex
     url = url.rsplit("/", 1)
     url = "https://youtube.com/{}".format(url[1])
-    pattern = r"(https?://)(youtube)\.(com)(watch\?v=|embed/|v/|.+\?v=)?([^&=%\?]{11})"
+    pattern = (r"(https?://)(youtube)\.(com)"
+                "(/?playlist\?list=|watch\?v=|embed/|v/|.+\?v=)?([0-9A-Za-z-_]{10,})")
     content_id = re.findall(pattern, url)
     content_id = content_id[0][-1]
     # Video IDs have a length of 11 characters
@@ -241,14 +242,14 @@ def main():
     parser.add_argument(
                         "-i",
                         "--instance",
-                        help="Specify a different invidious instance (Overrides config file)")
+                        help="Specify a different invidious instance")
     parser.add_argument("-r",
                         "--results",
                         type=int,
                         help="Return specific number of results")
     parser.add_argument("-v",
                         "--video",
-                        help="Play video (Overrides config file)",
+                        help="Toggle video playback",
                         action="store_true")
     group = parser.add_mutually_exclusive_group()
     group.add_argument("-u",
@@ -281,10 +282,10 @@ def main():
         instance = args.instance
     else:
         instance = invidious_config.get("instance")
+    config_video = invidious_config.get("play_video")
+    video = config_video
     if args.video:
-        video = args.video
-    else:
-        video = invidious_config.get("play_video")
+        video = False if config_video else True
     if args.popular:
         video_ids = get_data("popular", results, instance)
     elif args.trending:
