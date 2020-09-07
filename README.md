@@ -23,11 +23,10 @@ usage: invidious_viewer.py [-h] [-i INSTANCE] [-r RESULTS] [-v]
 optional arguments:
   -h, --help            show this help message and exit
   -i INSTANCE, --instance INSTANCE
-                        Specify a different invidious instance (Overrides
-                        config file)
+                        Specify a different invidious instance
   -r RESULTS, --results RESULTS
                         Return specific number of results
-  -v, --video           Play video (Overrides config file)
+  -v, --video           Toggle video playback
   -u URL, --url URL     Specify link or ID to play [Video/Playlist]
   -c CHANNEL, --channel CHANNEL
                         View videos from a specific channel
@@ -37,10 +36,16 @@ optional arguments:
 
 Config File :
 ```
-{"instance": "https://invidio.us", "play_video": true}
+{
+    "instance": "https://invidious.snopyta.org",
+    "play_video": true,
+    "captions": false
+}
 ```
 
-The instance can be permanently specified in the config file, along with the video playback preference.
+The instance can be permanently specified in the config file, along with the video playback and closed captions preference.
+
+The suggested alternative instance is https://invidious.13ad.de as all the required endpoints are provided.
 
 Example :
 `invidious --channel "Channel Name" --instance https://invidious.snopyta.org --results 5`
@@ -48,6 +53,6 @@ Example :
 Returns the first 5 results from the specified channel and fetches all URLs from the <a href="https://invidious.snopyta.org/">Snopyta instance</a>.
 
 # Screenshots
-![ScreenShot](https://raw.githubusercontent.com/lwritebadcode/invidious-viewer/master/screenshots/Search.png)
-![ScreenShot](https://raw.githubusercontent.com/lwritebadcode/invidious-viewer/master/screenshots/Popular.png)
-![ScreenShot](https://raw.githubusercontent.com/lwritebadcode/invidious-viewer/master/screenshots/Playlist.png)
+![ScreenShot](https://raw.githubusercontent.com/git-bruh/invidious-viewer/master/screenshots/Search.png)
+![ScreenShot](https://raw.githubusercontent.com/git-bruh/invidious-viewer/master/screenshots/Popular.png)
+![ScreenShot](https://raw.githubusercontent.com/git-bruh/invidious-viewer/master/screenshots/Playlist.png)
