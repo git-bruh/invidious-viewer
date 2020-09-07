@@ -1,6 +1,10 @@
 # invidious-viewer
 # Installation
-`pip install invidious-viewer --user`
+`pip install --user invidious-viewer`
+
+For installing the git version
+
+`pip install --user -U git+https://github.com/git-bruh/invidious-viewer.git`
 
 Add ~/.local/bin to PATH by adding the following to your ~/.bashrc :
 
@@ -9,13 +13,13 @@ Add ~/.local/bin to PATH by adding the following to your ~/.bashrc :
 This will allow invidious-viewer to be launched by using the `invidious` command in the terminal. 
 
 # Usage
-Note :
+Note:
 The MPV player is required, along with `libmpv.so` which should be provided by your distribution's package manager. Compiling MPV with LuaJIT support may also be required on a source-based distribution.
 
-Default behaviour :
-Returns the first page of results for the entered search term.
+Default behaviour:
+Return the first page of results for the entered search term.
 
-Additional usage options :
+Additional usage options:
 ```
 usage: invidious_viewer.py [-h] [-i INSTANCE] [-r RESULTS] [-v]
                            [-u URL | -c CHANNEL | -p | -t]
@@ -34,7 +38,7 @@ optional arguments:
   -t, --trending        View trending videos
 ```
 
-Config File :
+Config File:
 ```
 {
     "instance": "https://invidious.snopyta.org",
@@ -47,7 +51,7 @@ The instance can be permanently specified in the config file, along with the vid
 
 The suggested alternative instance is https://invidious.13ad.de as all the required endpoints are provided.
 
-Example :
+Usage example:
 `invidious --channel "Channel Name" --instance https://invidious.snopyta.org --results 5`
 
 Returns the first 5 results from the specified channel and fetches all URLs from the <a href="https://invidious.snopyta.org/">Snopyta instance</a>.
