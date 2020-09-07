@@ -5,6 +5,7 @@ import datetime
 import json
 import mpv
 import os
+import re
 
 # Set ANSI escape codes for colors
 CRED = "\033[91m"
@@ -39,15 +40,12 @@ def player_config(player, video, captions):
 
 
 def get_by_url(url, instance):
-    # Terrible implementation to get ID from video/playlist URL
-    # Example video URL https://invidio.us/watch?v=dQw4w9WgXcQ
-    try:
-        # Split after "=", returns the video ID dQw4w9WgXcQ
-        content_id = url.split("=")[1]
-    except IndexError:
-        # Assume that the exact video ID has been provided, dQw4w9WgXcQ
-        # Breaks if URL is in a format like https://youtu.be/dQw4w9WgXcQ
-        content_id = url
+    # Replace instance with https://youtube.com/ for regex
+    url = url.rsplit("/", 1)
+    url = "https://youtube.com/{}".format(url[1])
+    pattern = r"(https?://)(youtube)\.(com)(watch\?v=|embed/|v/|.+\?v=)?([^&=%\?]{11})"
+    content_id = re.findall(pattern, url)
+    content_id = content_id[0][-1]
     # Video IDs have a length of 11 characters
     # Assume the ID to be of a playlist if length exceeds 11 characters
     if len(content_id) > 11:
