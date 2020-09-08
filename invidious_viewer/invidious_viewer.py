@@ -124,8 +124,7 @@ def get_data(content_type, results, instance, search_term=None, api_url=None):
                 content[length_key].append(0)
     # Set maximum length for video titles
     max_len = 60
-    # The JSON data returned by the API is not really a python dictionary, as it has duplicate keys
-    # This if-else statement changes titles to have a maximum length of max_len and appends them to title_list
+    # Get titles from dictionary or JSON data
     if rss:
         for title in content["title"]:
             title = title[:max_len]
@@ -142,10 +141,6 @@ def get_data(content_type, results, instance, search_term=None, api_url=None):
         for i in loop_variable:
             # Add 1 to the count to be displayed before each title
             count += 1
-            # Add a space before the count number if it's less than or equal to 9
-            # Helps to get uniform output, comparison without and with this if-else statement
-            # 9: "TITLE"     9: "TITLE"
-            # 10: "TITLE"   10: "TITLE"
             if count <= 9:
                 count_ = " {}".format(count)
             else:
@@ -273,19 +268,15 @@ def main():
                      osc=True)
     # Set "ENTER" as the keybind to skip to the next item in the queue
     player.on_key_press("ENTER")(lambda: player.playlist_next(mode="force"))
-    url_ = args.url
-    results = args.results
     default_instance = "https://invidious.snopyta.org"
     invidious_config = config(default_instance)
+    url = args.url
+    results = args.results
+    video = invidious_config.get("play_video")
+    instance = invidious_config.get("instance")
     captions = invidious_config.get("captions")
-    if args.instance is not None:
-        instance = args.instance
-    else:
-        instance = invidious_config.get("instance")
-    config_video = invidious_config.get("play_video")
-    video = config_video
-    if args.video:
-        video = False if config_video else True
+    video = not video if args.video else video
+    instance = args.instance if args.instance is not None else instance
     if args.popular:
         video_ids = get_data("popular", results, instance)
     elif args.trending:
@@ -294,7 +285,7 @@ def main():
         channel_name = "+".join(args.channel.split())
         video_ids = get_data("channel", results, instance, channel_name)
     elif args.url is not None:
-        url = get_by_url(url_, instance)
+        url = get_by_url(url, instance)
         video_ids = get_data(url[0], results, instance, api_url=url[1])
     else:
         search_term = "+".join(input("> ").split())
