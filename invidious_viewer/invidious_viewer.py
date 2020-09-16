@@ -27,7 +27,7 @@ def response(url, headers):
     return response.getcode()
 
 
-def download(instance, url):
+def download(instance, url, instance_only=False):
     headers = ({
         "User-Agent":
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -37,10 +37,11 @@ def download(instance, url):
     fallback= "https://invidious.site"
     resp = response(instance, headers)
     if resp != 200:
-        print("The instance {} seems to be down... trying {}".format(instance, fallback))
-        url = fallback + url
-    else:
-        url = instance + url
+        print(f"The instance {instance} seems to be down... trying {fallback}")
+        instance = fallback
+    if instance_only:
+        return instance
+    url = instance + url
     url = urllib.request.Request(url, headers=headers)
     content = urllib.request.urlopen(url).read()
     content = json.loads(content)
@@ -62,7 +63,7 @@ def player_config(player, video, captions):
 def get_by_url(url):
     # Replace instance with https://youtube.com/ for regex
     url = url.rsplit("/", 1)
-    url = "https://youtube.com/{}".format(url[1])
+    url = f"https://youtube.com/{url[1]}"
     pattern = (r"(https?://)(youtube)\.(com)"
                 "(/?playlist\?list=|watch\?v=|embed/|v/|.+\?v=)?([0-9A-Za-z-_]{10,})")
     content_id = re.findall(pattern, url)
@@ -81,7 +82,7 @@ def config(instance):
     config_file = config_path + "config.json"
     config_dict = {"instance": instance, "play_video": True, "captions": False}
     if not os.path.exists(config_file):
-        print("Created config file at {}".format(config_file))
+        print(f"Created config file at {config_file}")
         try:
             os.mkdir(config_path)
         except FileExistsError:
@@ -95,13 +96,13 @@ def config(instance):
 
 def get_data(content_type, results, instance, search_term=None, content_id=None):
     if "search" in content_type or "channel" in content_type:
-        url = "/api/v1/search?q={}".format(search_term)
+        url = f"/api/v1/search?q={search_term}"
     elif "popular" in content_type:
         url = "/api/v1/popular"
     elif "trending" in content_type:
         url = "/api/v1/trending"
     elif "playlist" in content_type:
-        url = "/api/v1/playlists/{}".format(content_id)
+        url = f"/api/v1/playlists/{content_id}"
     elif "video" in content_type:
         return [content_id], 0
     rss = False
@@ -113,7 +114,7 @@ def get_data(content_type, results, instance, search_term=None, content_id=None)
         content = content["videos"]
     elif content_type == "channel":
         content_ = content
-        channel_url = "/api/v1/channels/videos/{}".format(content_[0]["authorId"])
+        channel_url = f"/api/v1/channels/videos/{content_[0]['authorId']}"
         content = download(instance, channel_url)
         # Fetch videos from RSS fead if invidious fails
         if len(content) == 0:
@@ -128,8 +129,7 @@ def get_data(content_type, results, instance, search_term=None, content_id=None)
             content.setdefault(title_key, [])
             content.setdefault(author_key, [])
             content.setdefault(length_key, [])
-            rss_feed = feedparser.parse("{}/feed/channel/{}".format(instance,
-                                        content_[0]["authorId"]))
+            rss_feed = feedparser.parse(f"{instance}/feed/channel/{content_[0]['authorId']}")
             rss_count = -1
             # RSS returns only 15 results
             while rss_count < 14:
@@ -159,7 +159,7 @@ def get_data(content_type, results, instance, search_term=None, content_id=None)
             # Add 1 to the count to be displayed before each title
             count += 1
             if count <= 9:
-                count_ = " {}".format(count)
+                count_ = f" {count}"
             else:
                 count_ = count
             # Stops the for loop if the maximum number of results have been printed out (Set by the --results argument)
@@ -179,9 +179,7 @@ def get_data(content_type, results, instance, search_term=None, content_id=None)
                 channel = i["author"]
                 video_ids.append(i["videoId"])
                 video_length = length(i["lengthSeconds"])
-            results = "{}: {}{} {}\t[{}] {}{} {}".format(count_, CGREEN, title,
-                                                        CBLUE, video_length, CRED,
-                                                        channel, CEND)
+            results = f"{count_}: {CGREEN}{title} {CBLUE}\t[{video_length}] {CRED}{channel} {CEND}"
             print(results)
     if rss:
         content_loop(content["title"])
@@ -212,15 +210,16 @@ def video_playback(video_ids, queue_length, instance, player):
     queue = 0
     for video_id in video_ids:
         queue += 1
-        url = "/api/v1/videos/{}".format(video_id)
+        url = f"/api/v1/videos/{video_id}"
         stream_url = download(instance, url)
         title = stream_url["title"]
-        print("[{} of {}] {}".format(queue, queue_length, title))
+        queue_string = f"[{queue} of {queue_length}] {title}"
+        print(queue_string)
         try:
             # Get URL for 1080p video
             url = stream_url["adaptiveFormats"][-3]["url"]
-            cc_url = stream_url["captions"][0]["url"]
-            cc_url = "{}{}".format(instance, cc_url)
+            cc_api_url = stream_url["captions"][0]["url"]
+            cc_url = f"{download(instance, None, True)}{cc_api_url}"
             # Set separate URL for audio file as 1080p URL ("adaptiveFormats") only has video content
             audio_url = stream_url["adaptiveFormats"][3]["url"]
             player.audio_files, player.sub_files = [audio_url], [cc_url]
