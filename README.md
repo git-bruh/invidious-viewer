@@ -6,7 +6,7 @@ For installing the git version:
 
 `pip install --user -U git+https://github.com/git-bruh/invidious-viewer.git`
 
-Add `~/.local/bin` to `PATH` by adding the following to your `~/.bashrc`:
+Add `~/.local/bin` to `PATH` by adding the following to your `~/.bashrc` file:
 
 `PATH=$HOME/.local/bin:$PATH`
 
@@ -14,7 +14,7 @@ This will allow invidious-viewer to be launched by using the `invidious` command
 
 # Usage
 Note:
-The MPV player is required, along with `libmpv.so` which should be provided by your distribution's package manager. Compiling MPV with LuaJIT support may also be required on a source-based distribution.
+The MPV player is required, along with `libmpv.so` which should be provided by your Linux distribution. Compiling MPV with LuaJIT support may also be required on source-based distributions.
 
 Default behaviour:
 Return the first page of results for the entered search term.
@@ -49,7 +49,7 @@ Config File:
 
 The instance can be permanently specified in the config file, along with the video playback and closed captions preference.
 
-The suggested alternative instance is https://invidious.13ad.de as all the required endpoints are provided.
+The suggested alternative instance is https://invidious.site/ as all the required endpoints are provided.
 
 Usage example:
 `invidious --channel "Channel Name" --instance https://invidious.snopyta.org --results 5`
