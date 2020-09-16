@@ -21,7 +21,27 @@ def length(arg):
         return arg
 
 
-def download(url):
+def response(url, headers):
+    request = urllib.request.Request(url, headers=headers)
+    response = urllib.request.urlopen(request)
+    return response.getcode()
+
+
+def download(instance, url):
+    headers = ({
+        "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome"
+        "/75.0.3770.100 Safari/537.36"
+    })
+    fallback= "https://invidious.site"
+    resp = response(instance, headers)
+    if resp != 200:
+        print("The instance {} seems to be down... trying {}".format(instance, fallback))
+        url = fallback + url
+    else:
+        url = instance + url
+    url = urllib.request.Request(url, headers=headers)
     content = urllib.request.urlopen(url).read()
     content = json.loads(content)
     return content
@@ -77,11 +97,11 @@ def config(instance):
 
 def get_data(content_type, results, instance, search_term=None, api_url=None):
     if "search" in content_type or "channel" in content_type:
-        url = "{}/api/v1/search?q={}".format(instance, search_term)
+        url = "/api/v1/search?q={}".format(search_term)
     elif "popular" in content_type:
-        url = "{}/api/v1/popular".format(instance)
+        url = "/api/v1/popular"
     elif "trending" in content_type:
-        url = "{}/api/v1/trending".format(instance)
+        url = "/api/v1/trending"
     elif "playlist" in content_type:
         url = api_url
     elif "video" in content_type:
@@ -90,14 +110,13 @@ def get_data(content_type, results, instance, search_term=None, api_url=None):
     video_ids = []
     title_list = []
     max_results = results
-    content = download(url)
+    content = download(instance, url)
     if content_type == "playlist":
         content = content["videos"]
     elif content_type == "channel":
         content_ = content
-        channel_url = "{}/api/v1/channels/videos/{}".format(instance,
-                                                     content_[0]["authorId"])
-        content = download(channel_url)
+        channel_url = "/api/v1/channels/videos/{}".format(content_[0]["authorId"])
+        content = download(instance, channel_url)
         # Fetch videos from RSS fead if invidious fails
         if len(content) == 0:
             rss = True
@@ -195,8 +214,8 @@ def video_playback(video_ids, queue_length, instance, player):
     queue = 0
     for video_id in video_ids:
         queue += 1
-        url = "{}/api/v1/videos/{}".format(instance, video_id)
-        stream_url = download(url)
+        url = "/api/v1/videos/{}".format(video_id)
+        stream_url = download(instance, url)
         title = stream_url["title"]
         print("[{} of {}] {}".format(queue, queue_length, title))
         try:
