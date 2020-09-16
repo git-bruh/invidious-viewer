@@ -59,7 +59,7 @@ def player_config(player, video, captions):
         player.input_terminal = True
 
 
-def get_by_url(url, instance):
+def get_by_url(url):
     # Replace instance with https://youtube.com/ for regex
     url = url.rsplit("/", 1)
     url = "https://youtube.com/{}".format(url[1])
@@ -70,12 +70,10 @@ def get_by_url(url, instance):
     # Video IDs have a length of 11 characters
     # Assume the ID to be of a playlist if length exceeds 11 characters
     if len(content_id) > 11:
-        api_url = "{}/api/v1/playlists/{}".format(instance, content_id)
         content_type = "playlist"
     else:
-        api_url = content_id
         content_type = "video"
-    return content_type, api_url
+    return content_type, content_id
 
 
 def config(instance):
@@ -95,7 +93,7 @@ def config(instance):
         return content
 
 
-def get_data(content_type, results, instance, search_term=None, api_url=None):
+def get_data(content_type, results, instance, search_term=None, content_id=None):
     if "search" in content_type or "channel" in content_type:
         url = "/api/v1/search?q={}".format(search_term)
     elif "popular" in content_type:
@@ -103,9 +101,9 @@ def get_data(content_type, results, instance, search_term=None, api_url=None):
     elif "trending" in content_type:
         url = "/api/v1/trending"
     elif "playlist" in content_type:
-        url = api_url
+        url = "/api/v1/playlists/{}".format(content_id)
     elif "video" in content_type:
-        return [api_url], 0
+        return [content_id], 0
     rss = False
     video_ids = []
     title_list = []
@@ -309,8 +307,8 @@ def main():
         channel_name = "+".join(args.channel.split())
         video_ids = get_data("channel", results, instance, channel_name)
     elif args.url is not None:
-        url = get_by_url(url, instance)
-        video_ids = get_data(url[0], results, instance, api_url=url[1])
+        url = get_by_url(url)
+        video_ids = get_data(url[0], results, instance, content_id=url[1])
     else:
         search_term = "+".join(input("> ").split())
         video_ids = get_data("search", results, instance, search_term)
