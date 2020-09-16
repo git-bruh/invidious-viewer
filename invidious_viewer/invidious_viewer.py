@@ -204,20 +204,25 @@ def video_playback(video_ids, queue_length, instance, player):
             url = stream_url["adaptiveFormats"][-3]["url"]
             cc_url = stream_url["captions"][0]["url"]
             cc_url = "{}{}".format(instance, cc_url)
-            player.sub_files = [cc_url]
             # Set separate URL for audio file as 1080p URL ("adaptiveFormats") only has video content
             audio_url = stream_url["adaptiveFormats"][3]["url"]
-            player.audio_files = [audio_url]
+            player.audio_files, player.sub_files = [audio_url], [cc_url]
         except IndexError:
+            # Don't use old files
+            player.audio_files, player.sub_files = [], []
             try:
                 # Get URL for 720p video
                 url = stream_url["formatStreams"][1]["url"]
             except IndexError:
                 try:
-                # Get URL for livestream
-                    url = stream_url["hlsUrl"]
-                except KeyError:
-                    print("No URL found")
+                    # Get URL for 360p video
+                    url = stream_url["formatStreams"][0]["url"]
+                except IndexError:
+                    try:
+                    # Get URL for livestream
+                        url = stream_url["hlsUrl"]
+                    except KeyError:
+                        print("No URL found")
         player.play(url)
         player.wait_for_playback()
     player.terminate()
