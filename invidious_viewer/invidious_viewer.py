@@ -259,15 +259,6 @@ def video_playback(video_ids, queue_length, instance, player):
 
 
 def main():
-    invidious_ascii = r'''
-      _____            _     _ _
-     |_   _|          (_)   | (_)
-       | |  _ ____   ___  __| |_  ___  _   _ ___
-       | | | '_ \ \ / / |/ _` | |/ _ \| | | / __|
-      _| |_| | | \ V /| | (_| | | (_) | |_| \__ \
-     |_____|_| |_|\_/ |_|\__,_|_|\___/ \__,_|___/
-    '''
-    print(invidious_ascii)
     parser = argparse.ArgumentParser()
     parser.add_argument(
                         "-i",
