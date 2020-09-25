@@ -1,3 +1,4 @@
+from socket import timeout
 import urllib.request
 import feedparser
 import argparse
@@ -27,7 +28,7 @@ def response(url, headers):
     return response.getcode()
 
 
-def download(instance, url, instance_only=False):
+def download(instance, api_url):
     headers = ({
         "User-Agent":
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -35,16 +36,29 @@ def download(instance, url, instance_only=False):
         "/75.0.3770.100 Safari/537.36"
     })
     fallback= "https://invidious.site"
-    resp = response(instance, headers)
-    if resp != 200:
-        print(f"The instance {instance} seems to be down... trying {fallback}")
-        instance = fallback
-    if instance_only:
-        return instance
-    url = instance + url
-    url = urllib.request.Request(url, headers=headers)
-    content = urllib.request.urlopen(url).read()
-    content = json.loads(content)
+    failed = "All instances failed... Quitting"
+    instance_list = [instance, fallback]
+    successful = False
+    timeout_ = 10
+    count = 0
+    for instance in instance_list:
+        if not successful:
+                if count == len(instance_list):
+                    print(failed)
+                    exit()
+                failure = f"Failed to connect to {instance}...\n"
+                url = instance + api_url
+                url = urllib.request.Request(url, headers=headers)
+                count += 1
+                resp = response(instance, headers)
+                successful = False
+                if resp == 200:
+                    try:
+                        content = urllib.request.urlopen(url, timeout=timeout_)
+                        successful = True
+                    except (urllib.error.HTTPError, timeout):
+                        print(failure)
+    content = json.loads(content.read())
     return content
 
 
@@ -216,10 +230,10 @@ def video_playback(video_ids, queue_length, instance, player):
         queue_string = f"[{queue} of {queue_length}] {title}"
         print(queue_string)
         try:
+            # Get URT for closed captions
+            cc_url = stream_url["captions"][0]["url"]
             # Get URL for 1080p video
             url = stream_url["adaptiveFormats"][-3]["url"]
-            cc_api_url = stream_url["captions"][0]["url"]
-            cc_url = f"{download(instance, None, True)}{cc_api_url}"
             # Set separate URL for audio file as 1080p URL ("adaptiveFormats") only has video content
             audio_url = stream_url["adaptiveFormats"][3]["url"]
             player.audio_files, player.sub_files = [audio_url], [cc_url]
