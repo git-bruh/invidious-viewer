@@ -5,9 +5,9 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="invidious-viewer",
-    version="0.0.7",
+    version="0.0.8",
     packages=["invidious_viewer"],
-    scripts=["invidious"],
+    scripts=["invidious-viewer"],
     description="Python application to watch YouTube videos through the "
     "Invidious API, in the terminal!",
     long_description=long_description,

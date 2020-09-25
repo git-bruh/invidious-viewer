@@ -10,7 +10,7 @@ Add `~/.local/bin` to `PATH` by adding the following to your `~/.bashrc` file:
 
 `PATH=$HOME/.local/bin:$PATH`
 
-This will allow invidious-viewer to be launched by using the `invidious` command in the terminal. 
+This will allow invidious-viewer to be launched by using the `invidious-viewer` command in the terminal.
 
 # Usage
 Note:
@@ -57,6 +57,6 @@ Usage example:
 Returns the first 5 results from the specified channel and fetches all URLs from the <a href="https://invidious.snopyta.org/">Snopyta instance</a>.
 
 # Screenshots
-![ScreenShot](https://raw.githubusercontent.com/git-bruh/invidious-viewer/master/screenshots/Search.png)
-![ScreenShot](https://raw.githubusercontent.com/git-bruh/invidious-viewer/master/screenshots/Popular.png)
-![ScreenShot](https://raw.githubusercontent.com/git-bruh/invidious-viewer/master/screenshots/Playlist.png)
+![Screenshot](https://raw.githubusercontent.com/git-bruh/invidious-viewer/master/screenshots/Search.png)
+![Screenshot](https://raw.githubusercontent.com/git-bruh/invidious-viewer/master/screenshots/Popular.png)
+![Screenshot](https://raw.githubusercontent.com/git-bruh/invidious-viewer/master/screenshots/Playlist.png)
