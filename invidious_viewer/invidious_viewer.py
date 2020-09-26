@@ -36,20 +36,15 @@ def download(instance, api_url):
         "/75.0.3770.100 Safari/537.36"
     })
     fallback= "https://invidious.site"
-    failed = "All instances failed... Quitting"
+    failed = "All instances failed, Quitting..."
     instance_list = [instance, fallback]
     successful = False
     timeout_ = 10
-    count = 0
     for instance in instance_list:
         if not successful:
-                if count == len(instance_list):
-                    print(failed)
-                    exit()
                 failure = f"Failed to connect to {instance}...\n"
                 url = instance + api_url
                 url = urllib.request.Request(url, headers=headers)
-                count += 1
                 resp = response(instance, headers)
                 successful = False
                 if resp == 200:
@@ -58,7 +53,11 @@ def download(instance, api_url):
                         successful = True
                     except (urllib.error.HTTPError, timeout):
                         print(failure)
-    content = json.loads(content.read())
+    try:
+        content = json.loads(content.read())
+    except UnboundLocalError:
+        print(failed)
+        exit()
     return content
 
 
