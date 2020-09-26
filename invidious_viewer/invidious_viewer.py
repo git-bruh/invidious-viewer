@@ -22,12 +22,6 @@ def length(arg):
         return arg
 
 
-def response(url, headers):
-    request = urllib.request.Request(url, headers=headers)
-    response = urllib.request.urlopen(request)
-    return response.getcode()
-
-
 def download(instance, api_url):
     headers = ({
         "User-Agent":
@@ -45,14 +39,12 @@ def download(instance, api_url):
                 failure = f"Failed to connect to {instance}...\n"
                 url = instance + api_url
                 url = urllib.request.Request(url, headers=headers)
-                resp = response(instance, headers)
                 successful = False
-                if resp == 200:
-                    try:
-                        content = urllib.request.urlopen(url, timeout=timeout_)
-                        successful = True
-                    except (urllib.error.HTTPError, timeout):
-                        print(failure)
+                try:
+                    content = urllib.request.urlopen(url, timeout=timeout_)
+                    successful = True
+                except (urllib.error.HTTPError, timeout):
+                    print(failure)
     try:
         content = json.loads(content.read())
     except UnboundLocalError:
