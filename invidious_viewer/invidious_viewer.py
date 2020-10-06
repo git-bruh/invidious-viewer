@@ -1,6 +1,5 @@
 from socket import timeout
 import urllib.request
-import feedparser
 import argparse
 import datetime
 import json
@@ -104,7 +103,6 @@ def get_data(content_type, results, search_term=None, content_id=None):
         url = f"/api/v1/playlists/{content_id}"
     elif "video" in content_type:
         return [content_id], 0
-    rss = False
     video_ids = []
     title_list = []
     max_results = results
@@ -115,40 +113,12 @@ def get_data(content_type, results, search_term=None, content_id=None):
         content_ = content
         channel_url = f"/api/v1/channels/videos/{content_[0]['authorId']}"
         content = download(channel_url)
-        # Fetch videos from RSS fead if invidious fails
-        if len(content) == 0:
-            rss = True
-            # Make an empty dict to store data from RSS feed
-            content = {}
-            id_key = "videoId"
-            title_key = "title"
-            author_key = "author"
-            length_key = "lengthSeconds"
-            content.setdefault(id_key, [])
-            content.setdefault(title_key, [])
-            content.setdefault(author_key, [])
-            content.setdefault(length_key, [])
-            rss_feed = feedparser.parse(f"{instance}/feed/channel/{content_[0]['authorId']}")
-            rss_count = -1
-            # RSS returns only 15 results
-            while rss_count < 14:
-                rss_count += 1
-                entries = rss_feed.entries[rss_count]
-                content[id_key].append(entries.yt_videoid)
-                content[title_key].append(entries.title)
-                content[author_key].append(entries.author)
-                content[length_key].append(0)
     # Set maximum length for video titles
     max_len = 60
-    # Get titles from dictionary or JSON data
-    if rss:
-        for title in content["title"]:
-            title = title[:max_len]
-            title_list.append(title)
-    else:
-        for title in content:
-            title = title["title"][:max_len]
-            title_list.append(title)
+    # Get titles from JSON data
+    for title in content:
+        title = title["title"][:max_len]
+        title_list.append(title)
     # Get longest title out of the title list, used in content_loop() for
     # properly padding video length and channel name
     longest_title = len(max(title_list, key=len))
@@ -166,27 +136,15 @@ def get_data(content_type, results, search_term=None, content_id=None):
             # have been printed out (Set by the --results argument)
             if max_results is not None and count > max_results:
                 continue
-            if rss:
-                title = i[:max_len].ljust(longest_title)
-                for item in content["author"]:
-                    channel = item
-                for item in content["videoId"]:
-                    if item not in video_ids:
-                        video_ids.append(item)
-                for item in content["lengthSeconds"]:
-                    video_length = length(item)
-            else:
-                title = i["title"][:max_len].ljust(longest_title)
-                channel = i["author"]
-                video_ids.append(i["videoId"])
-                video_length = length(i["lengthSeconds"])
+            title = i["title"][:max_len].ljust(longest_title)
+            channel = i["author"]
+            video_ids.append(i["videoId"])
+            video_length = length(i["lengthSeconds"])
             results = f"{count_}: {CGREEN}{title} {CBLUE}\t[{video_length}] {CRED}{channel} {CEND}"
             print(results)
 
-    if rss:
-        content_loop(content["title"])
-    else:
-        content_loop(content)
+    content_loop(content)
+
     queue_list = []
     if content_type == "search" or "playlist" or "popular":
         # Append user choice to queue
