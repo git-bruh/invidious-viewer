@@ -22,18 +22,22 @@ def length(arg):
         return arg
 
 
-def download(instance, api_url):
+def download(api_url):
     headers = ({
         "User-Agent":
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome"
         "/75.0.3770.100 Safari/537.36"
     })
-    fallback = "https://invidious.site"
     failed = "All instances failed, Quitting..."
-    instance_list = [instance, fallback]
     successful = False
     timeout_ = 10
+    instance_list = []
+
+    for i in "instance", "fallback_instance":
+        url = config().get(i)
+        instance_list.append(url)
+
     for instance in instance_list:
         if not successful:
             failure = f"Failed to connect to {instance}...\n"
@@ -45,11 +49,13 @@ def download(instance, api_url):
                 successful = True
             except (urllib.error.HTTPError, timeout):
                 print(failure)
+
     try:
         content = json.loads(content.read())
     except UnboundLocalError:
         print(failed)
         exit()
+
     return content
 
 
@@ -82,7 +88,8 @@ def get_by_url(url):
     return content_type, content_id
 
 
-def config(instance, fallback_instance):
+def config(instance="https://invidious.snoptra.org",
+           fallback_instance="https://invidious.site"):
     config_path = os.path.expanduser("~/.config/invidious/")
     config_file = config_path + "config.json"
     config_dict = {
@@ -119,7 +126,7 @@ def get_data(content_type, results, instance, search_term=None, content_id=None)
     video_ids = []
     title_list = []
     max_results = results
-    content = download(instance, url)
+    content = download(url)
     if content_type == "playlist":
         content = content["videos"]
     elif content_type == "channel":
@@ -224,7 +231,7 @@ def video_playback(video_ids, queue_length, instance, player):
     for video_id in video_ids:
         queue += 1
         url = f"/api/v1/videos/{video_id}"
-        stream_url = download(instance, url)
+        stream_url = download(url)
         title = stream_url["title"]
         queue_string = f"[{queue} of {queue_length}] {title}"
         print(queue_string)
@@ -294,9 +301,7 @@ def main():
                      osc=True)
     # Set "ENTER" as the keybind to skip to the next item in the queue
     player.on_key_press("ENTER")(lambda: player.playlist_next(mode="force"))
-    default_instance = "https://invidious.snopyta.org"
-    fallback_instance = "https://invidious.site"
-    invidious_config = config(default_instance, fallback_instance)
+    invidious_config = config()
     url = args.url
     results = args.results
     video = invidious_config.get("play_video")
