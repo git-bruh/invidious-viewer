@@ -111,7 +111,7 @@ def config(instance="https://invidious.snoptra.org",
         return content
 
 
-def get_data(content_type, results, instance, search_term=None, content_id=None):
+def get_data(content_type, results, search_term=None, content_id=None):
     if "search" in content_type or "channel" in content_type:
         url = f"/api/v1/search?q={search_term}"
     elif "popular" in content_type:
@@ -132,7 +132,7 @@ def get_data(content_type, results, instance, search_term=None, content_id=None)
     elif content_type == "channel":
         content_ = content
         channel_url = f"/api/v1/channels/videos/{content_[0]['authorId']}"
-        content = download(instance, channel_url)
+        content = download(channel_url)
         # Fetch videos from RSS fead if invidious fails
         if len(content) == 0:
             rss = True
@@ -224,7 +224,7 @@ def get_data(content_type, results, instance, search_term=None, content_id=None)
     return video_ids, len(queue_list)
 
 
-def video_playback(video_ids, queue_length, instance, player):
+def video_playback(video_ids, queue_length, player):
     if queue_length == 0:
         queue_length = 1
     queue = 0
@@ -310,20 +310,20 @@ def main():
     video = not video if args.video else video
     instance = args.instance if args.instance is not None else instance
     if args.popular:
-        video_ids = get_data("popular", results, instance)
+        video_ids = get_data("popular", results)
     elif args.trending:
-        video_ids = get_data("trending", results, instance)
+        video_ids = get_data("trending", results)
     elif args.channel is not None:
         channel_name = "+".join(args.channel.split())
-        video_ids = get_data("channel", results, instance, channel_name)
+        video_ids = get_data("channel", results, channel_name)
     elif args.url is not None:
         url = get_by_url(url)
-        video_ids = get_data(url[0], results, instance, content_id=url[1])
+        video_ids = get_data(url[0], results, content_id=url[1])
     else:
         search_term = "+".join(input("> ").split())
-        video_ids = get_data("search", results, instance, search_term)
+        video_ids = get_data("search", results, search_term)
     player_config(player, video, captions)
-    video_playback(video_ids[0], video_ids[1], instance, player)
+    video_playback(video_ids[0], video_ids[1], player)
 
 
 if __name__ == "__main__":
