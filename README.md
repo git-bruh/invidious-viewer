@@ -21,8 +21,7 @@ Return the first page of results for the entered search term.
 
 Additional usage options:
 ```
-usage: invidious_viewer.py [-h] [-i INSTANCE] [-r RESULTS] [-v]
-                           [-u URL | -c CHANNEL | -p | -t]
+usage: invidious_viewer.py [-h] [-i INSTANCE] [-r RESULTS] [-v] [-c CHANNEL | -p | -t]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -31,7 +30,6 @@ optional arguments:
   -r RESULTS, --results RESULTS
                         Return specific number of results
   -v, --video           Toggle video playback
-  -u URL, --url URL     Specify link or ID to play [Video/Playlist]
   -c CHANNEL, --channel CHANNEL
                         View videos from a specific channel
   -p, --popular         View popular videos (Default invidious page)
@@ -59,4 +57,3 @@ Returns the first 5 results from the specified channel and fetches all URLs from
 # Screenshots
 ![Screenshot](https://raw.githubusercontent.com/git-bruh/invidious-viewer/master/screenshots/Search.png)
 ![Screenshot](https://raw.githubusercontent.com/git-bruh/invidious-viewer/master/screenshots/Popular.png)
-![Screenshot](https://raw.githubusercontent.com/git-bruh/invidious-viewer/master/screenshots/Playlist.png)

@@ -6,7 +6,6 @@ import datetime
 import json
 import mpv
 import os
-import re
 
 # Set ANSI escape codes for colors
 CRED = "\033[91m"
@@ -69,23 +68,6 @@ def player_config(player, video, captions):
         player.vid = False
         player.terminal = True
         player.input_terminal = True
-
-
-def get_by_url(url):
-    # Replace instance with https://youtube.com/ for regex
-    url = url.rsplit("/", 1)
-    url = f"https://youtube.com/{url[1]}"
-    pattern = (r"(https?://)(youtube)\.(com)"
-                "(/?playlist\?list=|watch\?v=|embed/|v/|.+\?v=)?([0-9A-Za-z-_]{10,})")
-    content_id = re.findall(pattern, url)
-    content_id = content_id[0][-1]
-    # Video IDs have a length of 11 characters
-    # Assume the ID to be of a playlist if length exceeds 11 characters
-    if len(content_id) > 11:
-        content_type = "playlist"
-    else:
-        content_type = "video"
-    return content_type, content_id
 
 
 def config(instance="https://invidious.snoptra.org",
@@ -280,9 +262,6 @@ def main():
                         help="Toggle video playback",
                         action="store_true")
     group = parser.add_mutually_exclusive_group()
-    group.add_argument("-u",
-                       "--url",
-                       help="Specify link or ID to play [Video/Playlist]")
     group.add_argument("-c",
                        "--channel",
                        help="View videos from a specific channel")
@@ -302,7 +281,6 @@ def main():
     # Set "ENTER" as the keybind to skip to the next item in the queue
     player.on_key_press("ENTER")(lambda: player.playlist_next(mode="force"))
     invidious_config = config()
-    url = args.url
     results = args.results
     video = invidious_config.get("play_video")
     instance = invidious_config.get("instance")
@@ -316,9 +294,6 @@ def main():
     elif args.channel is not None:
         channel_name = "+".join(args.channel.split())
         video_ids = get_data("channel", results, channel_name)
-    elif args.url is not None:
-        url = get_by_url(url)
-        video_ids = get_data(url[0], results, content_id=url[1])
     else:
         search_term = "+".join(input("> ").split())
         video_ids = get_data("search", results, search_term)
