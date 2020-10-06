@@ -40,7 +40,6 @@ def download(api_url):
         if not successful:
             failure = f"Failed to connect to {instance}...\n"
             url = instance + api_url
-            print(url)
             url = urllib.request.Request(url, headers=headers)
             successful = False
             try:
