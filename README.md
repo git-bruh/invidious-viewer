@@ -8,7 +8,7 @@ For installing the git version:
 
 Add `~/.local/bin` to `PATH` by adding the following to your `~/.bashrc` file:
 
-`PATH=$HOME/.local/bin:$PATH`
+`PATH=$PATH:$HOME/.local/bin`
 
 This will allow invidious-viewer to be launched by using the `invidious-viewer` command in the terminal.
 
