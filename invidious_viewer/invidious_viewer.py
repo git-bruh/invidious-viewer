@@ -40,6 +40,7 @@ def download(api_url):
         if not successful:
             failure = f"Failed to connect to {instance}...\n"
             url = instance + api_url
+            print(url)
             url = urllib.request.Request(url, headers=headers)
             successful = False
             try:
@@ -69,7 +70,7 @@ def player_config(player, video, captions):
         player.input_terminal = True
 
 
-def config(instance="https://invidious.snoptra.org",
+def config(instance="https://invidious.snopyta.org",
            fallback_instance="https://invidious.site"):
     config_path = os.path.expanduser("~/.config/invidious/")
     config_file = config_path + "config.json"
