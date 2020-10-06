@@ -29,22 +29,22 @@ def download(instance, api_url):
         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome"
         "/75.0.3770.100 Safari/537.36"
     })
-    fallback= "https://invidious.site"
+    fallback = "https://invidious.site"
     failed = "All instances failed, Quitting..."
     instance_list = [instance, fallback]
     successful = False
     timeout_ = 10
     for instance in instance_list:
         if not successful:
-                failure = f"Failed to connect to {instance}...\n"
-                url = instance + api_url
-                url = urllib.request.Request(url, headers=headers)
-                successful = False
-                try:
-                    content = urllib.request.urlopen(url, timeout=timeout_)
-                    successful = True
-                except (urllib.error.HTTPError, timeout):
-                    print(failure)
+            failure = f"Failed to connect to {instance}...\n"
+            url = instance + api_url
+            url = urllib.request.Request(url, headers=headers)
+            successful = False
+            try:
+                content = urllib.request.urlopen(url, timeout=timeout_)
+                successful = True
+            except (urllib.error.HTTPError, timeout):
+                print(failure)
     try:
         content = json.loads(content.read())
     except UnboundLocalError:
@@ -82,10 +82,15 @@ def get_by_url(url):
     return content_type, content_id
 
 
-def config(instance):
+def config(instance, fallback_instance):
     config_path = os.path.expanduser("~/.config/invidious/")
     config_file = config_path + "config.json"
-    config_dict = {"instance": instance, "play_video": True, "captions": False}
+    config_dict = {
+                   "instance": instance,
+                   "fallback_instance": fallback_instance,
+                   "play_video": True,
+                   "captions": False
+                   }
     if not os.path.exists(config_file):
         print(f"Created config file at {config_file}")
         try:
@@ -155,10 +160,11 @@ def get_data(content_type, results, instance, search_term=None, content_id=None)
         for title in content:
             title = title["title"][:max_len]
             title_list.append(title)
-    # Get longest title out of the title list, used in content_loop() for properly padding
-    # video length and channel name
+    # Get longest title out of the title list, used in content_loop() for
+    # properly padding video length and channel name
     longest_title = len(max(title_list, key=len))
     count = 0
+
     def content_loop(loop_variable, count=count):
         for i in loop_variable:
             # Add 1 to the count to be displayed before each title
@@ -167,7 +173,8 @@ def get_data(content_type, results, instance, search_term=None, content_id=None)
                 count_ = f" {count}"
             else:
                 count_ = count
-            # Stops the for loop if the maximum number of results have been printed out (Set by the --results argument)
+            # Stop the for loop if the maximum number of results
+            # have been printed out (Set by the --results argument)
             if max_results is not None and count > max_results:
                 continue
             if rss:
@@ -186,6 +193,7 @@ def get_data(content_type, results, instance, search_term=None, content_id=None)
                 video_length = length(i["lengthSeconds"])
             results = f"{count_}: {CGREEN}{title} {CBLUE}\t[{video_length}] {CRED}{channel} {CEND}"
             print(results)
+
     if rss:
         content_loop(content["title"])
     else:
@@ -225,7 +233,8 @@ def video_playback(video_ids, queue_length, instance, player):
             cc_url = stream_url["captions"][0]["url"]
             # Get URL for 1080p video
             url = stream_url["adaptiveFormats"][-3]["url"]
-            # Set separate URL for audio file as 1080p URL ("adaptiveFormats") only has video content
+            # Set separate URL for audio file as 1080p URL
+            # only has video content
             audio_url = stream_url["adaptiveFormats"][3]["url"]
             player.audio_files, player.sub_files = [audio_url], [cc_url]
         except IndexError:
@@ -240,7 +249,7 @@ def video_playback(video_ids, queue_length, instance, player):
                     url = stream_url["formatStreams"][0]["url"]
                 except IndexError:
                     try:
-                    # Get URL for livestream
+                        # Get URL for livestream
                         url = stream_url["hlsUrl"]
                     except KeyError:
                         print("No URL found")
@@ -286,7 +295,8 @@ def main():
     # Set "ENTER" as the keybind to skip to the next item in the queue
     player.on_key_press("ENTER")(lambda: player.playlist_next(mode="force"))
     default_instance = "https://invidious.snopyta.org"
-    invidious_config = config(default_instance)
+    fallback_instance = "https://invidious.site"
+    invidious_config = config(default_instance, fallback_instance)
     url = args.url
     results = args.results
     video = invidious_config.get("play_video")
