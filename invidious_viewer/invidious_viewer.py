@@ -27,6 +27,7 @@ def download(api_url):
         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome"
         "/75.0.3770.100 Safari/537.36"
     })
+
     failed = "All instances failed, Quitting..."
     successful = False
     timeout_ = 10
@@ -42,6 +43,7 @@ def download(api_url):
             url = instance + api_url
             url = urllib.request.Request(url, headers=headers)
             successful = False
+
             try:
                 content = urllib.request.urlopen(url, timeout=timeout_)
                 successful = True
@@ -61,8 +63,10 @@ def player_config(player, video, captions):
     player.vid = "auto"
     player.terminal = False
     player.input_terminal = False
+
     if not captions:
         player.sid = False
+
     if not video:
         player.vid = False
         player.terminal = True
@@ -73,20 +77,24 @@ def config(instance="https://invidious.snopyta.org",
            fallback_instance="https://invidious.site"):
     config_path = os.path.expanduser("~/.config/invidious/")
     config_file = config_path + "config.json"
+
     config_dict = {
                    "instance": instance,
                    "fallback_instance": fallback_instance,
                    "play_video": True,
                    "captions": False
                    }
+
     if not os.path.exists(config_file):
         print(f"Created config file at {config_file}")
         try:
             os.mkdir(config_path)
         except FileExistsError:
             pass
+
         with open(config_file, "w") as f:
             json.dump(config_dict, f, indent=4)
+
     with open(config_file, "r") as f:
         content = json.loads(f.read())
         return content
@@ -103,22 +111,27 @@ def get_data(content_type, results, search_term=None, content_id=None):
         url = f"/api/v1/playlists/{content_id}"
     elif "video" in content_type:
         return [content_id], 0
+
     video_ids = []
     title_list = []
     max_results = results
     content = download(url)
+
     if content_type == "playlist":
         content = content["videos"]
     elif content_type == "channel":
         content_ = content
         channel_url = f"/api/v1/channels/videos/{content_[0]['authorId']}"
         content = download(channel_url)
+
     # Set maximum length for video titles
     max_len = 60
+
     # Get titles from JSON data
     for title in content:
         title = title["title"][:max_len]
         title_list.append(title)
+
     # Get longest title out of the title list, used in content_loop() for
     # properly padding video length and channel name
     longest_title = len(max(title_list, key=len))
@@ -127,20 +140,27 @@ def get_data(content_type, results, search_term=None, content_id=None):
     def content_loop(loop_variable, count=count):
         for i in loop_variable:
             # Add 1 to the count to be displayed before each title
+
             count += 1
             if count <= 9:
                 count_ = f" {count}"
             else:
                 count_ = count
+
             # Stop the for loop if the maximum number of results
             # have been printed out (Set by the --results argument)
             if max_results is not None and count > max_results:
                 continue
+
             title = i["title"][:max_len].ljust(longest_title)
             channel = i["author"]
+
             video_ids.append(i["videoId"])
             video_length = length(i["lengthSeconds"])
-            results = f"{count_}: {CGREEN}{title} {CBLUE}\t[{video_length}] {CRED}{channel} {CEND}"
+
+            results = f"{count_}: {CGREEN}{title} {CBLUE}\t[{video_length}] " \
+                      f"{CRED}{channel} {CEND}"
+
             print(results)
 
     content_loop(content)
@@ -160,6 +180,7 @@ def get_data(content_type, results, search_term=None, content_id=None):
                 break
             except ValueError:
                 pass
+
         video_ids = [video_ids[i] for i in queue_list]
     return video_ids, len(queue_list)
 
@@ -167,7 +188,9 @@ def get_data(content_type, results, search_term=None, content_id=None):
 def video_playback(video_ids, queue_length, player):
     if queue_length == 0:
         queue_length = 1
+
     queue = 0
+
     for video_id in video_ids:
         queue += 1
         url = f"/api/v1/videos/{video_id}"
@@ -175,6 +198,7 @@ def video_playback(video_ids, queue_length, player):
         title = stream_url["title"]
         queue_string = f"[{queue} of {queue_length}] {title}"
         print(queue_string)
+
         try:
             # Get URT for closed captions
             cc_url = stream_url["captions"][0]["url"]
@@ -200,13 +224,16 @@ def video_playback(video_ids, queue_length, player):
                         url = stream_url["hlsUrl"]
                     except KeyError:
                         print("No URL found")
+
         player.play(url)
         player.wait_for_playback()
+
     player.terminate()
 
 
 def main():
     parser = argparse.ArgumentParser()
+
     parser.add_argument(
                         "-i",
                         "--instance",
@@ -231,20 +258,26 @@ def main():
                        "--trending",
                        help="View trending videos",
                        action="store_true")
+
     args = parser.parse_args()
+
     player = mpv.MPV(ytdl=True,
                      input_default_bindings=True,
                      input_vo_keyboard=True,
                      osc=True)
+
     # Set "ENTER" as the keybind to skip to the next item in the queue
     player.on_key_press("ENTER")(lambda: player.playlist_next(mode="force"))
     invidious_config = config()
     results = args.results
+
     video = invidious_config.get("play_video")
     instance = invidious_config.get("instance")
     captions = invidious_config.get("captions")
+
     video = not video if args.video else video
     instance = args.instance if args.instance is not None else instance
+
     if args.popular:
         video_ids = get_data("popular", results)
     elif args.trending:
@@ -255,6 +288,7 @@ def main():
     else:
         search_term = "+".join(input("> ").split())
         video_ids = get_data("search", results, search_term)
+
     player_config(player, video, captions)
     video_playback(video_ids[0], video_ids[1], player)
 

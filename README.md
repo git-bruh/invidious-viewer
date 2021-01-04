@@ -12,6 +12,10 @@ Add `~/.local/bin` to `PATH` by adding the following to your `~/.bashrc` file:
 
 This will allow invidious-viewer to be launched by using the `invidious-viewer` command in the terminal.
 
+# Known issues
+
+* Output gets messed up if video titles have emojis or other characters in them.
+
 # Usage
 Note:
 The MPV player is required, along with `libmpv.so` which should be provided by your Linux distribution. Compiling MPV with LuaJIT support may also be required on source-based distributions.
@@ -47,7 +51,7 @@ Config File:
 
 The instance can be permanently specified in the config file, along with the video playback and closed captions preference.
 
-The suggested alternative instance is https://invidious.site/ as all the required endpoints are provided.
+The suggested alternative instance is https://invidious.site/ as all the required API endpoints are provided.
 
 Usage example:
 `invidious --channel "Channel Name" --instance https://invidious.snopyta.org --results 5`
